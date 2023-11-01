@@ -9,6 +9,7 @@ from utility.constants import PaymentMethod
 class Reason(BaseModel):
     reason_type = models.SmallIntegerField()
     reason_name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
 
 
 class Coupon(BaseModel):
@@ -31,8 +32,10 @@ class Coupon(BaseModel):
 class Order(BaseModel):
     invoice_no = models.CharField(default=generate_order_reference, max_length=50, editable=False, unique=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    order_stuff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    order_staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='order_staff',
+                                    null=True, blank=True)
+    delivery_staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                       related_name='order_delivery_staff', null=True, blank=True)
     customer_name = models.CharField(max_length=100)
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=20)
@@ -45,6 +48,7 @@ class Order(BaseModel):
     shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     coupon = models.ForeignKey('sales.Coupon', on_delete=models.SET_NULL, null=True, blank=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.SmallIntegerField(choices=PaymentMethod.choices)
     payment_status = models.SmallIntegerField(choices=constants.PaymentStatus.choices,
@@ -60,7 +64,7 @@ class Order(BaseModel):
 
 class OrderItem(BaseModel):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     product = models.ForeignKey('inventory.ProductVariant', on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)

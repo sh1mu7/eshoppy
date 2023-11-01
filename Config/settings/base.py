@@ -35,6 +35,13 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django.contrib.staticfiles',
     'coreapp.apps.CoreappConfig',
+    'blog.apps.BlogConfig',
+    'cart.apps.CartConfig',
+    'delivery.apps.DeliveryConfig',
+    'inventory.apps.InventoryConfig',
+    'notification.apps.NotificationConfig',
+    'sales.apps.SalesConfig',
+    'subscription.apps.SubscriptionConfig',
     'utility.apps.UtilityConfig',
 ]
 
@@ -76,9 +83,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),

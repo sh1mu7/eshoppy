@@ -24,16 +24,16 @@ class DeliveryRider(BaseModel):
 
 class DeliveryRequest(BaseModel):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
-    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='request_staff')
+    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='request_rider')
     is_accepted = models.BooleanField(default=True)
 
 
 class OrderDelivery(BaseModel):
     delivery_request = models.ForeignKey('delivery.DeliveryRequest', on_delete=models.CASCADE)
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='ordered_customer')
+    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='delivery_rider')
     estd_delivery_time = models.DateTimeField()
     address = models.TextField()
 

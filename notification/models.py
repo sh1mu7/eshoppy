@@ -7,7 +7,7 @@ from notification import constants
 class SystemAlert(BaseModel):
     title = models.CharField(max_length=100)
     message = models.TextField()
-    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):

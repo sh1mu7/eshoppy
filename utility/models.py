@@ -138,12 +138,13 @@ class Payout(BaseModel):
     status = models.BooleanField(default=True)
 
 
-class Refund(BaseModel):
+class Refund(models.Model):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='refunds_requested')
     cancel_reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE)
-    canceled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    user_type = models.IntegerField(choices=coreapp.roles.UserRoles)
+    canceled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                    related_name='refunds_processed')
+    user_type = models.IntegerField(choices=coreapp.roles.UserRoles.choices)
     comment = models.TextField()
     refundable_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -160,12 +161,6 @@ class FAQ(BaseModel):
     question = models.CharField(max_length=255)
     answer = models.TextField()
     position = models.IntegerField()
-    is_active = models.BooleanField(default=True)
-
-
-class PrivacyPolicy(BaseModel):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
     is_active = models.BooleanField(default=True)
 
 

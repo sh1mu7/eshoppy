@@ -22,7 +22,8 @@ class Country(BaseModel):
 
 class Address(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_address')
-    flat = models.CharField(100)
+    country = models.ForeignKey('coreapp.Country', on_delete=models.CASCADE)
+    flat = models.CharField(max_length=100)
     road = models.CharField(max_length=255)
     address = models.TextField()
     latitude = models.DecimalField(decimal_places=16, max_digits=20)
@@ -65,7 +66,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     @cached_property
     def get_country_name(self):
         return self.country.name
-
 
 
 class UserConfirmation(BaseModel):

@@ -1,8 +1,10 @@
 import itertools
-
 from django.contrib.admin.utils import NestedObjects
+from django.core.exceptions import FieldDoesNotExist
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
+from django.utils.crypto import get_random_string
+from django.utils.text import slugify
 from rest_framework import serializers
 
 
@@ -44,3 +46,13 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+    def generate_slug(self, field_name):
+        try:
+            self._meta.get_field('slug')
+            if not self.slug or self.slug == '':
+                self.slug = slugify(getattr(self, field_name))
+                while self.__class__.objects.filter(slug=self.slug).exists():
+                    self.slug = self.slug + get_random_string(5)
+        except FieldDoesNotExist:
+            pass
