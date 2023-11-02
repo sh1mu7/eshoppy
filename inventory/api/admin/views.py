@@ -41,23 +41,9 @@ class AdminProductAPI(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = serializers.AdminProductCreateSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            product = serializer.save()
-            if serializer.validated_data.get('has_variant', False):
-                variant_data = []
-                product_variants = serializer.validated_data.get('product_variants', [])
-                for item in product_variants:
-                    variant = ProductVariant(**dict(item), product=product)
-                    variant_data.append(variant)
-                ProductVariant.objects.bulk_create(variant_data)
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def get_serializer_class(self):
         if self.action == 'list':
             return serializers.AdminProductListSerializer
+        if self.action == 'retrieve':
+            return serializers.AdminProductDetailSerializer
         return self.serializer_class

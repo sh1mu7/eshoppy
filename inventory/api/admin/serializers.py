@@ -1,6 +1,13 @@
 from coreapp.api.serializers import DocumentSerializer
+from coreapp.models import Document
 from ...models import Brand, Category, VariantGroup, VariantOption, Product, ProductVariant, ProductReview
 from rest_framework import serializers
+
+
+class AdminDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ('id', 'document')
 
 
 class AdminBrandSerializer(serializers.ModelSerializer):
@@ -29,8 +36,6 @@ class AdminVariantGroupSerializer(serializers.ModelSerializer):
 
 
 class AdminVariantOptionSerializer(serializers.ModelSerializer):
-    group = AdminVariantGroupSerializer(many=False)
-
     class Meta:
         model = VariantOption
         fields = '__all__'
@@ -75,6 +80,7 @@ class AdminProductCreateSerializer(serializers.ModelSerializer):
             'unit_value', 'has_variant', 'product_specification', 'reward_points', 'stock_status', 'is_active',
             'is_featured', 'images', 'product_variants'
         )
+        read_only_fields = ('product_variants',)
 
     def validate(self, attrs):
         has_variant = attrs['has_variant']
@@ -86,40 +92,43 @@ class AdminProductCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        for e in ['product_variants', 'has_variant']:
-            if e in validated_data:
-                validated_data.pop(e)
-        images = validated_data.pop('images')
-        product = Product.objects.create(**validated_data)
-        product.images.set(images)
-        return product
+        # for e in ['product_variants', 'has_variant']:
+        #     if e in validated_data:
+        #         validated_data.pop(e)
+        # images = validated_data.pop('images')
+        # product = Product.objects.create(**validated_data)
+        # product.images.set(images)
+        # return product
 
-    # if not validated_data.get('has_variant'):
-    #     product_variant = validated_data.pop('product_variant')
-    #     images = validated_data.pop('images')
-    #     print(validated_data.get('has_variant'))
-    #     product = Product.objects.create(**validated_data)
-    #     product.save()
-    #     product.images.set(images)
-    #     return product
-    # else:
-    #     variant_data = []
-    #     images = validated_data.pop('images')
-    #     product = Product.objects.create(**validated_data)
-    #     product.save()
-    #     product.images.set(images)
-    #
-    #     return product
+        if not validated_data.get('has_variant'):
+            product_variants = validated_data.pop('product_variants')
+            images = validated_data.pop('images')
+            product = Product.objects.create(**validated_data)
+            product.save()
+            product.images.set(images)
+            return product
+        else:
+            variants_data = validated_data.pop('product_variants')
+            images = validated_data.pop('images')
+            product = Product.objects.create(**validated_data)
+            product.save()
+            product.images.set(images)
+            for variant_item in variants_data:
+                variant_option = variant_item.pop('variant_option').id
+                print(variant_option)
+                variant = VariantOption.objects.get(id=variant_option)
+                ProductVariant.objects.create(product=product, variant_option=variant, **variant_item)
+            return product
 
 
 class AdminProductDetailSerializer(serializers.ModelSerializer):
-    images_url = DocumentSerializer(many=True)
+    images = AdminDocumentSerializer(many=True, read_only=True)
     category_name = serializers.CharField(source='get_category_name', read_only=True)
     parent_category_name = serializers.CharField(source='get_parent_category_name', read_only=True)
     thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
     brand_name = serializers.CharField(source='get_brand_name', read_only=True)
-
-    # stock_status_display = serializers.CharField(source='get_stock_status_display', read_only=True)
+    product_variant = AdminProductVariant(many=True, required=False)
+    stock_status_display = serializers.CharField(source='get_stock_status_display', read_only=True)
 
     class Meta:
         model = Product
@@ -127,6 +136,9 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
             'id', 'name', 'product_code', 'slug', 'thumbnail', 'thumbnail_url', 'category', 'category_name',
             'parent_category_name', 'brand', 'brand_name', 'sku', 'description', 'cost', 'price', 'has_promotion',
             'promotional_price', 'promotions_start_date', 'promotions_expiry_date', 'quantity', 'vat', 'unit_name',
-            'unit_value', 'has_variant', 'reward_points', 'stuck_status', 'is_active', 'is_featured', 'images',
-            'images_url'
+            'unit_value', 'has_variant', 'reward_points', 'stock_status_display', 'is_active', 'is_featured', 'images',
+            "product_specification", 'product_variant'
+
         )
+
+        # fields = '__all__'
