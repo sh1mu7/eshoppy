@@ -17,6 +17,7 @@ class SystemAlert(BaseModel):
 class PersonalNotification(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
+    message = models.TextField()
     timestamp = models.DateTimeField()
     notification_type = models.SmallIntegerField(choices=constants.NotificationTypeChoices.choices)
     # TODO : What would be the notification type?

@@ -60,13 +60,14 @@ class Product(BaseModel):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     has_promotion = models.BooleanField(default=False)
     promotional_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, )
-    start_date = models.DateField(null=True)
-    expiry_date = models.DateField(null=True)
+    promotions_start_date = models.DateField(null=True)
+    promotions_expiry_date = models.DateField(null=True)
     quantity = models.PositiveIntegerField(default=0)
     vat = models.DecimalField(max_digits=5, decimal_places=2)
     unit_name = models.CharField(max_length=50)
     unit_value = models.DecimalField(max_digits=10, decimal_places=2)
     has_variant = models.BooleanField(default=False)
+    product_specification = models.JSONField()
     reward_points = models.IntegerField(default=0)
     stock_status = models.SmallIntegerField(choices=constants.StockStatusChoices.choices,
                                             default=constants.StockStatusChoices.IN_STOCK)
@@ -100,7 +101,6 @@ class Product(BaseModel):
 
 class ProductVariant(BaseModel):
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE)
-    variant_group = models.ForeignKey('inventory.VariantGroup', on_delete=models.CASCADE)
     variant_option = models.ForeignKey('inventory.VariantOption', on_delete=models.CASCADE)
     code = models.CharField(max_length=15)
     quantity = models.IntegerField()
