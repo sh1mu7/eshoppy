@@ -1,7 +1,10 @@
 from coreapp.api.serializers import DocumentSerializer
+from django.utils.translation import gettext_lazy as _
 from coreapp.models import Document
 from ...models import Brand, Category, VariantGroup, VariantOption, Product, ProductVariant, ProductReview
 from rest_framework import serializers
+
+from ...utils.product_variants import create_product_variants, update_product_variants
 
 
 class AdminDocumentSerializer(serializers.ModelSerializer):
@@ -42,6 +45,8 @@ class AdminVariantOptionSerializer(serializers.ModelSerializer):
 
 
 class AdminProductVariant(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ProductVariant
         fields = '__all__'
@@ -64,12 +69,7 @@ class AdminProductListSerializer(serializers.ModelSerializer):
 
 
 class AdminProductCreateSerializer(serializers.ModelSerializer):
-    # images_url = DocumentSerializer(many=True)
-    # category_name = serializers.CharField(source='get_category_name', read_only=True)
-    # parent_category_name = serializers.CharField(source='get_parent_category_name', read_only=True)
-    # thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
-    # brand_name = serializers.CharField(source='get_brand_name', read_only=True)
-    product_variants = AdminProductVariant(many=True, required=False)
+    product_variants = AdminProductVariant(many=True, required=False, write_only=True)
 
     class Meta:
         model = Product
@@ -88,36 +88,22 @@ class AdminProductCreateSerializer(serializers.ModelSerializer):
             try:
                 data = attrs['product_variants']
             except KeyError:
-                raise serializers.ValidationError({'product_variants': 'data not found'})
+                raise serializers.ValidationError({'product_variants': [_('variant data not found')]})
         return attrs
 
     def create(self, validated_data):
-        # for e in ['product_variants', 'has_variant']:
-        #     if e in validated_data:
-        #         validated_data.pop(e)
-        # images = validated_data.pop('images')
-        # product = Product.objects.create(**validated_data)
-        # product.images.set(images)
-        # return product
+        has_variant = validated_data.get('has_variant', False)
+        variants_data = validated_data.pop('product_variants', [])
+        images = validated_data.pop('images')
 
-        if not validated_data.get('has_variant'):
-            product_variants = validated_data.pop('product_variants')
-            images = validated_data.pop('images')
+        if not has_variant:
             product = Product.objects.create(**validated_data)
-            product.save()
             product.images.set(images)
             return product
         else:
-            variants_data = validated_data.pop('product_variants')
-            images = validated_data.pop('images')
             product = Product.objects.create(**validated_data)
-            product.save()
             product.images.set(images)
-            for variant_item in variants_data:
-                variant_option = variant_item.pop('variant_option').id
-                print(variant_option)
-                variant = VariantOption.objects.get(id=variant_option)
-                ProductVariant.objects.create(product=product, variant_option=variant, **variant_item)
+            create_product_variants(product, variants_data)
             return product
 
 
@@ -127,8 +113,7 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
     parent_category_name = serializers.CharField(source='get_parent_category_name', read_only=True)
     thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
     brand_name = serializers.CharField(source='get_brand_name', read_only=True)
-    product_variant = AdminProductVariant(many=True, required=False)
-    stock_status_display = serializers.CharField(source='get_stock_status_display', read_only=True)
+    product_variants = AdminProductVariant(many=True,read_only=True)
 
     class Meta:
         model = Product
@@ -136,9 +121,35 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
             'id', 'name', 'product_code', 'slug', 'thumbnail', 'thumbnail_url', 'category', 'category_name',
             'parent_category_name', 'brand', 'brand_name', 'sku', 'description', 'cost', 'price', 'has_promotion',
             'promotional_price', 'promotions_start_date', 'promotions_expiry_date', 'quantity', 'vat', 'unit_name',
-            'unit_value', 'has_variant', 'reward_points', 'stock_status_display', 'is_active', 'is_featured', 'images',
-            "product_specification", 'product_variant'
-
+            'unit_value', 'has_variant', 'reward_points', 'stock_status', 'is_active', 'is_featured', 'images',
+            "product_specification", 'product_variants'
         )
 
-        # fields = '__all__'
+
+class AdminProductUpdateSerializer(serializers.ModelSerializer):
+    product_variants = AdminProductVariant(many=True, required=False, write_only=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'name', 'thumbnail', 'category',
+            'brand', 'sku', 'description', 'cost', 'price', 'has_promotion',
+            'promotional_price', 'promotions_start_date', 'promotions_expiry_date', 'quantity', 'vat', 'unit_name',
+            'unit_value', 'has_variant', 'product_specification', 'reward_points', 'stock_status', 'is_active',
+            'is_featured', 'images', 'product_variants'
+        )
+
+    def validate(self, attrs):
+        has_variant = attrs.get('has_variant')
+        if has_variant:
+            if 'product_variants' not in attrs:
+                raise serializers.ValidationError({'product_variants': [_('variant data not found')]})
+        return attrs
+
+    def update(self, instance, validated_data):
+        images = validated_data.pop('images')
+        variants_data = validated_data.pop('product_variants', [])
+        Product.objects.filter(id=instance.id).update(**validated_data)
+        instance.images.set(images)
+        update_product_variants(instance, variants_data)
+        return instance

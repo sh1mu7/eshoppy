@@ -44,6 +44,8 @@ class AdminProductAPI(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return serializers.AdminProductListSerializer
-        if self.action == 'retrieve':
+        elif self.action == 'retrieve':
             return serializers.AdminProductDetailSerializer
+        elif self.action == 'update':
+            return serializers.AdminProductUpdateSerializer
         return self.serializer_class

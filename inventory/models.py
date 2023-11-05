@@ -100,8 +100,9 @@ class Product(BaseModel):
 
 
 class ProductVariant(BaseModel):
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE,related_name='product_variant')
-    variant_option = models.ForeignKey('inventory.VariantOption', on_delete=models.CASCADE,related_name='product_variant_option')
+    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='product_variants')
+    variant_option = models.ForeignKey('inventory.VariantOption', on_delete=models.CASCADE,
+                                       related_name='product_variant_option')
     code = models.CharField(max_length=15)
     quantity = models.IntegerField()
     additional_price = models.DecimalField(max_digits=10, decimal_places=2)
