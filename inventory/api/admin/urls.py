@@ -8,6 +8,8 @@ router.register('category', views.AdminCategoryAPI)
 router.register('variant-group', views.AdminVariantGroupAPI)
 router.register('variant-option', views.AdminVariantOptionAPI)
 router.register('product', views.AdminProductAPI)
+router.register('promotion', views.AdminPromotionProductAPI)
+router.register('productreview', views.AdminProductReviewAPI)
 
 urlpatterns = [
     path('', include(router.urls))

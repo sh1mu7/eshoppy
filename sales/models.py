@@ -1,32 +1,40 @@
 from django.conf import settings
 from django.db import models
+
 from coreapp.base import BaseModel
 from sales import constants
+from sales.utils import coupon_utils
 from sales.utils.order_utils import generate_order_reference
 from utility.constants import PaymentMethod
 
 
 class Reason(BaseModel):
-    reason_type = models.SmallIntegerField()
+    reason_type = models.SmallIntegerField(choices=constants.ReasonType.choices)
     reason_name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
 
 
 class Coupon(BaseModel):
-    coupon_code = models.CharField(max_length=50, unique=True)
+    coupon_code = models.CharField(max_length=15, editable=False, unique=True, null=False, blank=False)
+    coupon_title = models.CharField(max_length=100)
+    coupon_type = models.SmallIntegerField(choices=constants.CouponType.choices)
     discount_type = models.SmallIntegerField(choices=constants.DiscountType.choices)
-    valid_from = models.DateTimeField()
-    valid_to = models.DateTimeField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    maximum_discount = models.IntegerField()
-    total_used = models.IntegerField(default=0)
-    belonging_category = models.ManyToManyField('inventory.Category', related_name='coupons')
-    products = models.ManyToManyField('inventory.Product', related_name='coupons')
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='coupons')
+    start_date = models.DateTimeField()
+    expire_date = models.DateTimeField()
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    minimum_purchase = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    maximum_discount = models.IntegerField(null=True)
+    max_usage = models.IntegerField()
+    usage_count = models.IntegerField(default=0)
+    customers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='coupons')
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.coupon_code
+
+    def save(self, *args, **kwargs):
+        self.coupon_code = coupon_utils.generate_coupon_code()
+        super(Coupon, self).save(**kwargs)
 
 
 class Order(BaseModel):
@@ -65,7 +73,7 @@ class Order(BaseModel):
 class OrderItem(BaseModel):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    product = models.ForeignKey('inventory.ProductVariant', on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     price = models.DecimalField(max_digits=10, decimal_places=2)

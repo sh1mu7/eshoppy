@@ -4,6 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+
 from coreapp import constants, roles
 from coreapp.manager import MyUserManager
 from .base import BaseModel
@@ -26,9 +27,22 @@ class Address(BaseModel):
     flat = models.CharField(max_length=100)
     road = models.CharField(max_length=255)
     address = models.TextField()
+    zip_code = models.CharField(max_length=10)
     latitude = models.DecimalField(decimal_places=16, max_digits=20)
     longitude = models.DecimalField(decimal_places=16, max_digits=20)
     is_default = models.BooleanField(default=False)
+
+    def make_default(self):
+        Address.objects.filter(user=self.user).update(is_default=False)
+        self.is_default = True
+
+    def __str__(self):
+        return f"User: {self.user.get_full_name}\nAddress:{self.flat}, {self.road}, {self.address}, {self.country}, {self.zip_code}"
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            self.make_default()
+        super(Address, self).save(**kwargs)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

@@ -2,6 +2,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+class ReasonType(models.IntegerChoices):
+    CHANGE_OF_MIND = 0, _('Change Of Mind')
+
+
 class OrderStatus(models.IntegerChoices):
     PENDING = 0, _('Pending')
     PROCESSING = 1, _('Processing')
@@ -41,7 +45,12 @@ class PaymentStatus(models.IntegerChoices):
     PENDING = 2, _('Pending')
 
 
+class CouponType(models.IntegerChoices):
+    FREE_DELIVERY = 0, _('Free Delivery')
+    FIRST_ORDER = 1, _('First Order')
+    DISCOUNT_ON_PURCHASE = 2, _('Discount On Purchase')
+
+
 class DiscountType(models.IntegerChoices):
-    FLAT = 0, _('flat')
+    AMOUNT = 0, _('Amount')
     PERCENTAGE = 1, _('Percentage')
-    FREE_SHIPPING = 2, _('Free Shipping')

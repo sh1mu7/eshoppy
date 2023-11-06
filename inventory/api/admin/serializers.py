@@ -1,16 +1,19 @@
+from django.db.models import F
+
 from coreapp.api.serializers import DocumentSerializer
 from django.utils.translation import gettext_lazy as _
 from coreapp.models import Document
 from ...models import Brand, Category, VariantGroup, VariantOption, Product, ProductVariant, ProductReview
 from rest_framework import serializers
-
 from ...utils.product_variants import create_product_variants, update_product_variants
 
 
 class AdminDocumentSerializer(serializers.ModelSerializer):
+    document_url = serializers.CharField(source='get_url', read_only=True)
+
     class Meta:
         model = Document
-        fields = ('id', 'document')
+        fields = ('id', 'document_url')
 
 
 class AdminBrandSerializer(serializers.ModelSerializer):
@@ -113,7 +116,7 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
     parent_category_name = serializers.CharField(source='get_parent_category_name', read_only=True)
     thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
     brand_name = serializers.CharField(source='get_brand_name', read_only=True)
-    product_variants = AdminProductVariant(many=True,read_only=True)
+    product_variants = AdminProductVariant(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -153,3 +156,39 @@ class AdminProductUpdateSerializer(serializers.ModelSerializer):
         instance.images.set(images)
         update_product_variants(instance, variants_data)
         return instance
+
+
+class AdminPromotionProductSerializer(serializers.ModelSerializer):
+    promotion_status = serializers.CharField(source='get_promotion_status', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'id', 'product_code', 'name', 'promotional_price', 'promotions_start_date', 'promotions_expiry_date',
+            'promotion_status'
+        )
+
+
+class AdminPromotionProductDetailSerializer(serializers.ModelSerializer):
+    promotion_status = serializers.CharField(source='get_promotion_status', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'id', 'product_code', 'name', 'price', 'promotional_price', 'promotions_start_date',
+            'promotions_expiry_date',
+            'promotion_status'
+        )
+
+
+class AdminProductReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    product_name = serializers.CharField(source='product.get_product_name', read_only=True)
+    product_image = serializers.CharField(source='product.get_thumbnail_url', read_only=True)
+    images_url = AdminDocumentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProductReview
+        fields = (
+            'id', 'user_name', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images', 'images_url'
+        )

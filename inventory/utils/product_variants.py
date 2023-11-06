@@ -18,6 +18,6 @@ def update_product_variants(instance, product_variants):
                     setattr(product_variant, attr, value)
                 product_variant.save()
             else:
-                pass  # You may add handling for cases when the product variant doesn't exist
+                pass
         else:
             ProductVariant.objects.create(product=instance, **variant_data)

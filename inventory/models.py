@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
@@ -93,6 +95,28 @@ class Product(BaseModel):
     def get_thumbnail_url(self):
         return self.thumbnail.get_url
 
+    @cached_property
+    def get_product_name(self):
+        if self.has_variant:
+            return f"{self.name} - {self.product_variants.first().variant_option.name}"
+        else:
+
+            return self.name
+
+    @cached_property
+    def get_product_review(self):
+        return self.productreview_set.filter(product=self.id).values_list('id', flat=True)
+
+    @cached_property
+    def get_promotion_status(self):
+        today = date.today()
+        if self.promotions_start_date and self.promotions_expiry_date:
+            if self.promotions_start_date <= today <= self.promotions_expiry_date:
+                return 'running'
+            elif today > self.promotions_expiry_date:
+                return 'expired'
+        return 'coming soon'
+
     def save(self, *args, **kwargs):
         self.generate_slug('name')
         self.product_code = product_utils.generate_product_code()
@@ -110,10 +134,20 @@ class ProductVariant(BaseModel):
 
 class ProductReview(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE)
+    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='product_review')
     rating = models.IntegerField()
     comment = models.TextField()
     images = models.ManyToManyField('coreapp.Document')
     order_item = models.ForeignKey('sales.OrderItem', on_delete=models.SET_NULL, null=True, blank=True)
 
-# TODO: Please check this inventory module
+    def save(self, *args, **kwargs):
+        rating_count = self.product.total_review
+        average_rating = self.product.average_rating
+        total_ratings = (average_rating * rating_count) + self.rating
+        self.product.total_review += 1
+        self.product.average_rating = total_ratings / self.product.total_review
+        self.product.save()
+        self.product.refresh_from_db()
+        print(self.product.average_rating)
+
+        super(ProductReview, self).save(**kwargs)
