@@ -51,7 +51,7 @@ class CustomerProductReviewSerializer(serializers.ModelSerializer):
                     {'product': [_('You must have purchased the product to leave a review.')]}
                 )
             if self.Meta.model.objects.filter(product=product, user=user).exists():
-                raise serializers.ValidationError({'product': ['You have already reviewed this product.'], })
+                raise serializers.ValidationError({'product': [_('You have already reviewed this product.')], })
         return attrs
 
     def create(self, validated_data):

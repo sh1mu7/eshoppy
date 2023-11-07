@@ -8,13 +8,6 @@ from utility import constants
 from .utils import slug_utils
 
 
-class Currency(BaseModel):
-    currency_name = models.CharField(max_length=15)
-    currency_sign = models.CharField(max_length=5)
-    currency_rate = models.DecimalField(max_digits=6, decimal_places=2)
-    is_active = models.BooleanField(default=True)
-
-
 class GlobalSettings(BaseModel):
     site_name = models.CharField(max_length=100)
     website_url = models.CharField(max_length=100)
@@ -56,6 +49,20 @@ class GlobalSettings(BaseModel):
 
     def __str__(self):
         return self.site_name
+
+
+class Currency(BaseModel):
+    currency_name = models.CharField(max_length=15)
+    currency_sign = models.ForeignKey('coreapp.Document', on_delete=models.CASCADE)
+    currency_rate = models.DecimalField(max_digits=6, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+
+    @cached_property
+    def get_currency_sign_url(self):
+        return self.currency_sign.get_url
+
+    def __str__(self):
+        return self.currency_name
 
 
 class Page(BaseModel):
@@ -117,11 +124,7 @@ class Payment(BaseModel):
     ip_address = models.CharField(max_length=100)
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True)
     subscription = models.ForeignKey('subscription.SubscriptionHistory', on_delete=models.CASCADE, null=True)
-
-    status = models.SmallIntegerField(
-        choices=constants.PaymentStatus.choices,
-        default=constants.PaymentStatus.PENDING
-    )
+    status = models.SmallIntegerField(choices=constants.PaymentStatus.choices, default=constants.PaymentStatus.PENDING)
     payment_method = models.SmallIntegerField(choices=constants.PaymentMethod.choices)
     bill_uid = models.CharField(max_length=100, null=True, blank=True)
     bill_url = models.TextField()
@@ -153,15 +156,26 @@ class Banner(BaseModel):
     name = models.CharField(max_length=100)
     image = models.ForeignKey('coreapp.Document', on_delete=models.CASCADE)
     expiry_date = models.DateField()
+    position = models.IntegerField()
     is_active = models.BooleanField(default=True)
+
+    @cached_property
+    def get_image_url(self):
+        return self.image.get_url
+
+    def __str__(self):
+        return self.name
 
 
 class FAQ(BaseModel):
-    faq_type = models.IntegerField(choices=constants.FaqType.choices)
+    faq_type = models.IntegerField(choices=constants.FaqType.choices, default=constants.FaqType.Customer)
     question = models.CharField(max_length=255)
     answer = models.TextField()
     position = models.IntegerField()
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.question
 
 
 class SearchResult(BaseModel):
