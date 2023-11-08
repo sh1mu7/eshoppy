@@ -20,10 +20,10 @@ class UserWishlistAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
             return serializers.UserWishlistCreateSerializer
         return self.serializer_class
 
-    # def get_serializer_context(self):
-    #     context = super(UserWishlistAPI, self).get_serializer_context()
-    #     context.update({'request': self.request})
-    #     return context
+    def get_serializer_context(self):
+        context = super(UserWishlistAPI, self).get_serializer_context()
+        context.update({'request': self.request})
+        return context
 
 
 class UserCartAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
