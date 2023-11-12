@@ -65,7 +65,7 @@ class Product(BaseModel):
     promotions_start_date = models.DateField(null=True)
     promotions_expiry_date = models.DateField(null=True)
     quantity = models.PositiveIntegerField(default=0)
-    vat = models.DecimalField(max_digits=5, decimal_places=2)
+    vat = models.DecimalField(max_digits=10, decimal_places=6)
     unit_name = models.CharField(max_length=50)
     unit_value = models.DecimalField(max_digits=10, decimal_places=2)
     has_variant = models.BooleanField(default=False)
@@ -108,6 +108,16 @@ class Product(BaseModel):
         return self.productreview_set.filter(product=self.id).values_list('id', flat=True)
 
     @cached_property
+    def get_vat_amount(self):
+        return self.vat
+
+    @cached_property
+    def has_stock(self):
+        if self.quantity > 0:
+            return True
+        return False
+
+    @cached_property
     def get_promotion_status(self):
         today = date.today()
         if self.promotions_start_date and self.promotions_expiry_date:
@@ -130,6 +140,12 @@ class ProductVariant(BaseModel):
     code = models.CharField(max_length=15)
     quantity = models.IntegerField()
     additional_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @cached_property
+    def has_stock(self):
+        if self.quantity > 0:
+            return True
+        return False
 
 
 class ProductReview(BaseModel):

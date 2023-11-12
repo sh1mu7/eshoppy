@@ -47,6 +47,10 @@ class GlobalSettings(BaseModel):
     def get_logo_url(self):
         return self.logo.get_url
 
+    @cached_property
+    def get_shipping_fee(self):
+        return self.shipping_fee
+
     def __str__(self):
         return self.site_name
 
@@ -122,6 +126,7 @@ class Payment(BaseModel):
     uid = models.UUIDField(default=uuid.uuid4, db_index=True, editable=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     ip_address = models.CharField(max_length=100)
+    transaction_type = models.SmallIntegerField(choices=constants.TransactionType.choices)
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True)
     subscription = models.ForeignKey('subscription.SubscriptionHistory', on_delete=models.CASCADE, null=True)
     status = models.SmallIntegerField(choices=constants.PaymentStatus.choices, default=constants.PaymentStatus.PENDING)

@@ -2,19 +2,34 @@ import decimal
 import string
 import random
 from sales import constants
+from utility.models import GlobalSettings
+
+settings = GlobalSettings.objects.all().first()
 
 
 def discount_after_coupon(subtotal, coupon):
-    if coupon.discount_type == constants.DiscountType.FLAT:
-        return coupon.price
-    elif coupon.discount_type == constants.DiscountType.PERCENTAGE:
-        discount_amount = decimal.Decimal(subtotal * coupon.price / 100)
-        if discount_amount > coupon.maximum_discount_amount:
-            return coupon.maximum_discount_amount
-        else:
-            return discount_amount
+    if coupon.coupon_type == constants.CouponType.FIRST_ORDER:
+        if coupon.discount_type == constants.DiscountType.AMOUNT:
+            if subtotal > coupon.minimum_purchase:
+                return coupon.discount_amount
+            else:
+                discount_amount = decimal.Decimal(subtotal * coupon.discount_amount / 100)
+                if discount_amount > coupon.maximum_discount and subtotal > coupon.minimum_purchase:
+                    return coupon.maximum_discount
+                else:
+                    return discount_amount
+    elif coupon.coupon_type == constants.CouponType.DISCOUNT_ON_PURCHASE:
+        if coupon.discount_type == constants.DiscountType.AMOUNT:
+            if subtotal > coupon.minimum_purchase:
+                return coupon.discount_amount
+            else:
+                discount_amount = decimal.Decimal(subtotal * coupon.discount_amount / 100)
+                if discount_amount > coupon.maximum_discount and subtotal > coupon.minimum_purchase:
+                    return coupon.maximum_discount
+                else:
+                    return discount_amount
     else:
-        return 15
+        return settings.get_shipping_fee
 
 
 def generate_coupon_code():
@@ -23,8 +38,3 @@ def generate_coupon_code():
     coupon_code = ''.join(characters[:8])
     formatted_coupon_code = f"{coupon_code[:4]}-{coupon_code[4:]}"
     return formatted_coupon_code
-
-
-# def generate_coupon_code():
-#     random_number = random.randint(100000, 999999)
-#     return f"CPN-{random_number}"

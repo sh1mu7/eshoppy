@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import CustomerAddressAPI, CustomerReasonAPI, CustomerCouponAPI
+from . import views
 
 router = routers.DefaultRouter()
-router.register('address', CustomerAddressAPI)
-router.register('reason', CustomerReasonAPI)
-router.register('coupon', CustomerCouponAPI)
+router.register('address', views.CustomerAddressAPI)
+router.register('reason', views.CustomerReasonAPI)
+router.register('coupon', views.CustomerCouponAPI)
+router.register('checkout', views.CustomerCheckoutAPI)
 
 urlpatterns = [
     path('', include(router.urls))

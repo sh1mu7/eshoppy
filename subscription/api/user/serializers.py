@@ -10,9 +10,12 @@ class UserPackageSerializer(serializers.ModelSerializer):
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
+    package_name = serializers.CharField(source='get_package_name', read_only=True)
+    package_duration = serializers.CharField(source='get_package_duration', read_only=True)
+
     class Meta:
         model = SubscriptionHistory
-        fields = ('id', 'package')
+        fields = ('id', 'package', 'package_name', 'expiry_date', 'package_duration')
 
     def validate(self, attrs):
         user = self.context['request'].user

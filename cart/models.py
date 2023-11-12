@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 
+import inventory.models
 from coreapp.base import BaseModel
 
 
@@ -29,6 +30,7 @@ class Wishlist(BaseModel):
 class Cart(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE)
+    product_variant = models.ForeignKey('inventory.ProductVariant', on_delete=models.CASCADE, null=True)
     variant = models.ForeignKey('inventory.VariantOption', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(default=1)
 

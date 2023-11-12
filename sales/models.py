@@ -1,6 +1,7 @@
+from decimal import Decimal
 from django.conf import settings
 from django.db import models
-
+from django.utils.functional import cached_property
 from coreapp.base import BaseModel
 from sales import constants
 from sales.utils import coupon_utils
@@ -54,10 +55,10 @@ class Order(BaseModel):
     shipping_address = models.ForeignKey('coreapp.Address', on_delete=models.CASCADE)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vat = models.DecimalField(max_digits=10, decimal_places=6, default=0)
     coupon = models.ForeignKey('sales.Coupon', on_delete=models.SET_NULL, null=True, blank=True)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     payment_method = models.SmallIntegerField(choices=PaymentMethod.choices)
     payment_status = models.SmallIntegerField(choices=constants.PaymentStatus.choices,
                                               default=constants.PaymentStatus.PENDING)
@@ -66,8 +67,29 @@ class Order(BaseModel):
                                                default=constants.OrderStatus.PENDING)
     order_status = models.SmallIntegerField(choices=constants.OrderStatus.choices,
                                             default=constants.OrderStatus.PROCESSING)
+    has_cancel_request = models.BooleanField(default=False)
     cancel_reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE, null=True, blank=True)
     cancel_reason_note = models.TextField(null=True, blank=True)
+
+    @cached_property
+    def get_order_item(self):
+        return self.orderitem_set.all()
+
+    @cached_property
+    def get_item_count(self):
+        return self.orderitem_set.count()
+
+    @cached_property
+    def get_customer_name(self):
+        return self.customer.get_full_name
+
+    @cached_property
+    def get_customer_mobile(self):
+        return self.customer.mobile
+
+    @cached_property
+    def get_order_staff(self):
+        return self.delivery_staff.get_full_name
 
 
 class OrderItem(BaseModel):
@@ -75,10 +97,50 @@ class OrderItem(BaseModel):
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
-    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
+    product_variant = models.ForeignKey('inventory.ProductVariant', on_delete=models.CASCADE, null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @cached_property
+    def get_product_name(self):
+        return self.product.name
+
+    @cached_property
+    def get_product_price(self):
+        if self.product_variant:
+            price = self.product_variant.additional_price + self.product.price
+            return price
+        else:
+            price = self.product.price
+            return price
+
+    @cached_property
+    def get_subtotal(self):
+        if self.product_variant:
+            subtotal = (Decimal(self.get_product_price) * Decimal(self.quantity))
+            return subtotal
+        else:
+            subtotal = Decimal(self.price) * Decimal(self.quantity)
+            return subtotal
+
+    @cached_property
+    def get_vat_amount(self):
+        vat = self.get_subtotal * (self.product.vat / 100)
+        return vat
+
+    @cached_property
+    def get_total(self):
+        total = self.subtotal + self.get_vat_amount
+        return total
+
+    def save(self, *args, **kwargs):
+        self.price = self.get_product_price
+        self.vat_amount = self.get_vat_amount
+        self.subtotal = self.get_subtotal
+        self.total = self.get_total
+        super(OrderItem, self).save(*args, **kwargs)
 
 
 class OrderEvent(BaseModel):
@@ -86,3 +148,6 @@ class OrderEvent(BaseModel):
     event_status = models.SmallIntegerField(choices=constants.OrderEventStatus.choices,
                                             default=constants.OrderEventStatus.ORDER_PLACED)
     note = models.TextField()
+
+    def __str__(self):
+        return f'{self.order} - {self.event_status}'
