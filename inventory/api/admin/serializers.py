@@ -48,7 +48,7 @@ class AdminVariantOptionSerializer(serializers.ModelSerializer):
 
 
 class AdminProductVariant(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
+    id = serializers.IntegerField(required=False) # TODO: turn of read only for id
 
     class Meta:
         model = ProductVariant
@@ -68,6 +68,7 @@ class AdminProductListSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'sku', 'brand_name', 'category_name', 'parent_category_name', 'thumbnail_url', 'is_featured',
             'stock_status_display', 'is_active'
+            #TODO: Product code also needs to be here
         )
 
 

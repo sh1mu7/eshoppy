@@ -50,6 +50,8 @@ class UserCartListSerializer(serializers.ModelSerializer):
             'quantity')
 
     def get_product_price(self, instance):
+        # TODO : This method needs to be optimized otherwise it will trigger N+1 query
+
         product = instance.product
         if product.has_variant:
             product_variant = instance.product_variant
@@ -73,6 +75,8 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         cart = Cart.objects.create(**validated_data, user=user)
+        # TODO: After every create method save needs to be called
+        #  otherwise in case of db transaction error data will be lost
         return cart
 
 

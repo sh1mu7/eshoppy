@@ -73,8 +73,8 @@ class Product(BaseModel):
     reward_points = models.IntegerField(default=0)
     stock_status = models.SmallIntegerField(choices=constants.StockStatusChoices.choices,
                                             default=constants.StockStatusChoices.IN_STOCK)
-    total_review = models.IntegerField(default=0)
-    average_rating = models.FloatField(default=0.0)
+    total_review = models.IntegerField(default=0) #TODO: should be non editable
+    average_rating = models.FloatField(default=0.0) #TODO: should be non editable
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     images = models.ManyToManyField('coreapp.Document', related_name='product_images')

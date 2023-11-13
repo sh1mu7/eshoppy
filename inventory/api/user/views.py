@@ -52,6 +52,9 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         except Product.DoesNotExist:
             return Response({'detail': _("Invalid login credentials")}, status=status.HTTP_400_BAD_REQUEST)
 
+    #TODO: One extra action needed for calculating the price on varaint selection
+
+
 
 class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin):

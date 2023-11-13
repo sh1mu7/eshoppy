@@ -2,7 +2,7 @@ from django_filters import rest_framework as dj_filters
 
 from inventory.models import Category, Brand, Product
 
-
+#TODO : Is active filter needed for everything
 class BrandFilter(dj_filters.FilterSet):
     name = dj_filters.CharFilter(lookup_expr='icontains')
 
@@ -35,6 +35,7 @@ class CustomerProductFilter(dj_filters.FilterSet):
     price = dj_filters.RangeFilter()
     sort = dj_filters.ChoiceFilter(
         choices=[
+            # TODO: sorting by name also needed
             ('cost_low', 'cost_high'),
             ('cost_high', 'cost_low'),
             ('rating_high', 'rating_low'),
