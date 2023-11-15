@@ -15,3 +15,8 @@ class DocumentChoices(models.IntegerChoices):
     VIDEO = 1, _("Video")
     FILE = 2, _("File")
     OTHER = 3, _("Other")
+
+
+class MembershipType(models.IntegerChoices):
+    PREMIUM = 0, _('Premium')
+    GENERAL = 1, _('General')

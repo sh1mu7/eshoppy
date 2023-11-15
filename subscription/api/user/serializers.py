@@ -9,21 +9,23 @@ class UserPackageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class UserSubscriptionSerializer(serializers.ModelSerializer):
+class UserSubscriptionCreateSerializer(serializers.Serializer):
+    package = serializers.IntegerField()
+    payment_method = serializers.IntegerField()
+
+    def validate(self, attrs):
+        package = attrs['package']
+        if not Package.objects.filter(id=package, is_active=True).exists():
+            raise serializers.ValidationError({'package': [_("Invalid package id")]})
+        return attrs
+
+
+class UserSubscriptionListSerializer(serializers.ModelSerializer):
     package_name = serializers.CharField(source='get_package_name', read_only=True)
-    package_duration = serializers.CharField(source='get_package_duration', read_only=True)
+    price = serializers.CharField(source='get_package_price', read_only=True)
+    details = serializers.CharField(source='get_package_details', read_only=True)
+    package_expired = serializers.CharField(source='get_is_expired', read_only=True)
 
     class Meta:
         model = SubscriptionHistory
-        fields = ('id', 'package', 'package_name', 'expiry_date', 'package_duration')
-
-    def validate(self, attrs):
-        user = self.context['request'].user
-        if SubscriptionHistory.objects.filter(customer=user, is_expired=False).exists():
-            raise serializers.ValidationError({'detail': [_('You already have a active package.')]})
-        return attrs
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        subscription = SubscriptionHistory.objects.create(**validated_data, customer=user)
-        return subscription
+        fields = ('package_name', 'price', 'details', 'start_date', 'expiry_date', 'package_expired')

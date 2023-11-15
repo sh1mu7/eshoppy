@@ -56,6 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     role = models.IntegerField(choices=roles.UserRoles.choices, default=roles.UserRoles.CUSTOMER)
+    reward_points = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    membership_type = models.SmallIntegerField(choices=constants.MembershipType.choices,
+                                               default=constants.MembershipType.GENERAL)
+    device_id = models.CharField(max_length=255, null=True)
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

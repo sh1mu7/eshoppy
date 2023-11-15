@@ -13,7 +13,7 @@ class AdminBrandAPI(viewsets.ModelViewSet):
     queryset = Brand.objects.all()
     serializer_class = serializers.AdminBrandSerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
-    filterset_class = filters.BrandFilter
+    filterset_class = filters.AdminBrandFilter
 
 
 class AdminCategoryAPI(viewsets.ModelViewSet):
@@ -21,7 +21,7 @@ class AdminCategoryAPI(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.AdminCategorySerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
-    filterset_class = filters.CategoryFilter
+    filterset_class = filters.AdminCategoryFilter
 
 
 class AdminVariantGroupAPI(viewsets.ModelViewSet):
@@ -74,4 +74,9 @@ class AdminProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixi
     permission_classes = [IsAdminUser, ]
     queryset = ProductReview.objects.all()
     serializer_class = serializers.AdminProductReviewSerializer
+    filter_backends = (dj_filters.DjangoFilterBackend,)
+    filterset_class = filters.ProductReviewFilter
+
+
+
 

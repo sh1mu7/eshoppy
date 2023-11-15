@@ -23,7 +23,7 @@ class SignupSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = (
             'first_name', 'last_name', 'dob', 'email', 'mobile', 'password', 'confirm_password',
-            'country', 'gender'
+            'country', 'gender', 'role'
         )
 
     def validate(self, data):

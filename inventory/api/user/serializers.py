@@ -2,7 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from sales.models import OrderItem
-from ..admin.serializers import AdminDocumentSerializer
+from ..admin.serializers import AdminDocumentSerializer, AdminProductVariant
 from ...models import Brand, Category, Product, ProductReview
 
 
@@ -11,7 +11,7 @@ class CustomerBrandSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Brand
-        fields = ('id', 'name', 'logo', 'logo_url', 'order', 'slug', 'is_featured', 'is_active')
+        fields = ('id', 'name', 'logo', 'logo_url', 'position', 'slug', 'is_featured', 'is_active')
 
 
 class CustomerCategorySerializer(serializers.ModelSerializer):
@@ -76,10 +76,11 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
     images = AdminDocumentSerializer(many=True, read_only=True)
     product_name = serializers.CharField(source='get_product_name', read_only=True)
     product_review = CustomerProductReviewSerializer(many=True)
+    product_variants = AdminProductVariant(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = (
             'id', 'product_name', 'images', 'total_review', 'average_rating', 'price', 'description',
-            'product_specification', 'product_review'
+            'product_specification', 'product_review','product_variants'
         )

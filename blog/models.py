@@ -41,6 +41,10 @@ class Post(BaseModel):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        self.generate_slug('title')
+        super(Post, self).save(*args, **kwargs)
+
 
 class Comment(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_comment')

@@ -2,15 +2,16 @@ from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from coreapp import roles
 from coreapp.models import User
-from ...models import CustomerInformation, Package, SubscriptionHistory
+from ...models import Package, SubscriptionHistory
 
 
 class CustomerInformationSerializer(serializers.ModelSerializer):
-    customer_name = serializers.CharField(source='get_customer_name', read_only=True)
+    customer_name = serializers.CharField(source='get_full_name', read_only=True)
 
     class Meta:
-        model = CustomerInformation
-        fields = '__all__'
+        model = User
+        fields = ('email', 'mobile', 'device_id', 'customer_name')
+        # Todo : Need to fix
 
 
 class AdminPackageSerializer(serializers.ModelSerializer):
@@ -20,7 +21,7 @@ class AdminPackageSerializer(serializers.ModelSerializer):
 
 
 class AdminSubscriptionSerializer(serializers.ModelSerializer):
-    customer_name = serializers.CharField(source='get_customer_name', read_only=True)
+    customer_name = serializers.CharField(source='get_full_name', read_only=True)
 
     class Meta:
         model = SubscriptionHistory

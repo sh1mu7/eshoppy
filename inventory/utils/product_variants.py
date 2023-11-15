@@ -5,8 +5,7 @@ def create_product_variants(product, variants_data):
     for variant_item in variants_data:
         variant_option = variant_item.pop('variant_option').id
         variant = VariantOption.objects.get(id=variant_option)
-        ProductVariant.objects.create(product=product, variant_option=variant, **variant_item)
-        #TODO: needs to call save method here
+        ProductVariant.objects.create(product=product, variant_option=variant, **variant_item).save()
 
 
 def update_product_variants(instance, product_variants):

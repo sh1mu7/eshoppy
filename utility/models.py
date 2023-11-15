@@ -132,7 +132,7 @@ class Payment(BaseModel):
     status = models.SmallIntegerField(choices=constants.PaymentStatus.choices, default=constants.PaymentStatus.PENDING)
     payment_method = models.SmallIntegerField(choices=constants.PaymentMethod.choices)
     bill_uid = models.CharField(max_length=100, null=True, blank=True)
-    bill_url = models.TextField()
+    bill_url = models.TextField(null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):

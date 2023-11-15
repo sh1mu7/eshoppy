@@ -56,3 +56,7 @@ class BaseModel(models.Model):
                     self.slug = self.slug + get_random_string(5)
         except FieldDoesNotExist:
             pass
+
+
+
+

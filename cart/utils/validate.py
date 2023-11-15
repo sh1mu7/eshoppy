@@ -3,11 +3,11 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Cart
 
 
-def validate_cart_creation(attrs):
+def validate_cart_creation(attrs, user):
     product = attrs.get('product')
     quantity = attrs.get('quantity')
     product_variant = attrs.get('product_variant')
-    cart = Cart.objects.filter(product=product, product_variant=product_variant)
+    cart = Cart.objects.filter(product=product, product_variant=product_variant, user=user)
     if product.has_variant:
         if not product_variant:
             raise serializers.ValidationError({"detail": [_('Please provide a product variant.'), ]})

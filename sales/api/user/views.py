@@ -14,6 +14,7 @@ from . import serializers
 from ... import constants
 from utility import constants as payment_constants
 from ...utils import coupon_utils
+from ...utils.process_order_utils import process_cart_and_coupon
 
 
 class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -46,36 +47,15 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     customer=customer, customer_email=customer.email, customer_phone=customer.mobile,
                     customer_name=customer.get_full_name, customer_latitude=address.latitude,
                     customer_longitude=address.longitude, shipping_address=address, payment_method=payment_method)
-                for item in cart_items:
-                    if not item.product.has_stock:
-                        return Response({'detail': f'{item.product.product_name} is out of stock.'},
-                                        status=status.HTTP_400_BAD_REQUEST)
-                    order_item = OrderItem.objects.create(
-                        order=order, customer=customer, product=item.product, quantity=item.quantity,
-                        vat_amount=item.product.get_vat_amount, product_variant=item.product_variant)
-                    order_item.save()
-                    subtotal = subtotal + order_item.subtotal
-                    vat_amount += order_item.get_vat_amount
-                    if item.product_variant:
-                        product_variant = ProductVariant.objects.get(id=item.product_variant.id)
-                        if not product_variant.has_stock:
-                            return Response(
-                                {'detail': [
-                                    _(f'The variant of the product "{product_variant.product.name}" with code {product_variant.code}'
-                                      f' is currently unavailable.')]}, status=status.HTTP_400_BAD_REQUEST)
-                        product_variant.quantity = product_variant.quantity - item.quantity
-                        product_variant.save()
-                    else:
-                        product = Product.objects.get(id=item.product.id)
-                        product.quantity = product.quantity - item.quantity
-                if coupon_code:
-                    coupon = Coupon.objects.get(coupon_code=coupon_code)
-                    order.coupon_id = coupon.id
-                    discount += coupon_utils.discount_after_coupon(subtotal, coupon)
+
+                subtotal, vat_amount, discount = process_cart_and_coupon(customer, subtotal, vat_amount, order,
+                                                                         cart_items_id, coupon_code)
+
                 order.subtotal = subtotal
                 order.vat = vat_amount
                 total += subtotal + vat_amount + shipping_charge - discount
                 order.total = total
+                print(total)
                 order.save()
                 order.refresh_from_db()
                 # TODO: Need to remove the comment
@@ -104,7 +84,8 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             transaction.set_rollback(True)
-            return Response({'detail': [_(f"{str(e)} can not create order. Try again.")]})
+            return Response({'detail': [_(f"{str(e)} can not create order. Try again.")]},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerAddressAPI(viewsets.ModelViewSet):

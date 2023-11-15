@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from ...utils import validate
-from inventory.models import ProductVariant
+from inventory.models import ProductVariant, Product
 from ...models import Wishlist, Cart
 
 
@@ -69,14 +69,15 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
     def validate(self, attrs):
-        validated_attrs = validate.validate_cart_creation(attrs)
+        user = self.context.get('request').user if self.context.get('request') and self.context.get(
+            'request').user.is_authenticated else None
+        validated_attrs = validate.validate_cart_creation(attrs, user)
         return validated_attrs
 
     def create(self, validated_data):
         user = self.context['request'].user
         cart = Cart.objects.create(**validated_data, user=user)
-        # TODO: After every create method save needs to be called
-        #  otherwise in case of db transaction error data will be lost
+        cart.save()
         return cart
 
 
@@ -93,3 +94,8 @@ class UserCartUpdateSerializer(serializers.ModelSerializer):
         if available_quantity < quantity:
             raise serializers.ValidationError({'detail': [_('The requested quantity exceeds available stock.'), ]})
         return attrs
+
+
+class CartPriceCalculationSerializer(serializers.Serializer):
+    cart_list = serializers.ListField(allow_empty=False, allow_null=False)
+    coupon_code = serializers.CharField(required=False)

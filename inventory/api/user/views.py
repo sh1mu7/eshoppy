@@ -10,7 +10,7 @@ from coreapp.permissions import IsCustomer
 from . import serializers
 from .. import filters
 from ... import constants
-from ...models import Brand, Category, Product, ProductReview
+from ...models import Brand, Category, Product, ProductReview, ProductVariant
 
 
 class CustomerBrandAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
@@ -50,10 +50,21 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
             serializer = serializers.CustomerProductListSerializer(related_products, many=True)
             return Response(serializer.data)
         except Product.DoesNotExist:
-            return Response({'detail': _("Invalid login credentials")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
-    #TODO: One extra action needed for calculating the price on varaint selection
-
+    @extend_schema(request=None)
+    @action(detail=True, methods=['get'], url_path='calculate_price/(?P<variant_id>[^/.]+)')
+    def calculate_price(self, request, pk=None, variant_id=None):
+        try:
+            product = self.get_object()
+            product_variant = ProductVariant.objects.get(id=variant_id)
+            calculated_price = product.price + product_variant.additional_price
+            data = {
+                'calculated_price': calculated_price
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except Product.DoesNotExist:
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,

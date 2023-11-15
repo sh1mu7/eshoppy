@@ -12,7 +12,7 @@ from inventory.utils import product_utils
 class Brand(BaseModel):
     name = models.CharField(max_length=100)
     logo = models.ForeignKey('coreapp.Document', on_delete=models.CASCADE, related_name='brand_logo')
-    order = models.IntegerField()
+    position = models.IntegerField()
     slug = models.SlugField(editable=False, unique=True)
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -65,7 +65,7 @@ class Product(BaseModel):
     promotions_start_date = models.DateField(null=True)
     promotions_expiry_date = models.DateField(null=True)
     quantity = models.PositiveIntegerField(default=0)
-    vat = models.DecimalField(max_digits=10, decimal_places=6)
+    vat = models.DecimalField(max_digits=10, decimal_places=2)
     unit_name = models.CharField(max_length=50)
     unit_value = models.DecimalField(max_digits=10, decimal_places=2)
     has_variant = models.BooleanField(default=False)
@@ -73,8 +73,8 @@ class Product(BaseModel):
     reward_points = models.IntegerField(default=0)
     stock_status = models.SmallIntegerField(choices=constants.StockStatusChoices.choices,
                                             default=constants.StockStatusChoices.IN_STOCK)
-    total_review = models.IntegerField(default=0) #TODO: should be non editable
-    average_rating = models.FloatField(default=0.0) #TODO: should be non editable
+    total_review = models.IntegerField(default=0, editable=False)
+    average_rating = models.FloatField(default=0.0, editable=False)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     images = models.ManyToManyField('coreapp.Document', related_name='product_images')
@@ -130,6 +130,7 @@ class Product(BaseModel):
     def save(self, *args, **kwargs):
         self.generate_slug('name')
         self.product_code = product_utils.generate_product_code()
+        self.average_rating = round(self.average_rating, 2)
         super(Product, self).save(**kwargs)
 
 
@@ -164,6 +165,4 @@ class ProductReview(BaseModel):
         self.product.average_rating = total_ratings / self.product.total_review
         self.product.save()
         self.product.refresh_from_db()
-        print(self.product.average_rating)
-
         super(ProductReview, self).save(**kwargs)

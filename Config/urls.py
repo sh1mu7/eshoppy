@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('Config.api.base')),
+    path('silk/', include('silk.urls', namespace='silk')),
 ]
