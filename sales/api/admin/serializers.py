@@ -3,8 +3,10 @@ from ...models import Reason, Coupon, OrderItem, Order
 
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='get_product_name')
+
     class Meta:
-        model = OrderItem.objects.all()
+        model = OrderItem
         fields = ('id', 'product', 'product_name', 'quantity', 'price', 'subtotal')
 
 

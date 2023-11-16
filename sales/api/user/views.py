@@ -54,8 +54,9 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 order.subtotal = subtotal
                 order.vat = vat_amount
                 total += subtotal + vat_amount + shipping_charge - discount
+                order.discount = discount
                 order.total = total
-                print(total)
+
                 order.save()
                 order.refresh_from_db()
                 # TODO: Need to remove the comment

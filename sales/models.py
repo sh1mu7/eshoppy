@@ -84,12 +84,20 @@ class Order(BaseModel):
         return self.customer.get_full_name
 
     @cached_property
+    def get_customer_email(self):
+        return self.customer.email
+
+    @cached_property
     def get_customer_mobile(self):
         return self.customer.mobile
 
     @cached_property
     def get_order_staff(self):
         return self.delivery_staff.get_full_name
+
+    @cached_property
+    def get_order_event_status(self):
+        return self.orderevent_set.last()
 
 
 class OrderItem(BaseModel):
@@ -150,4 +158,4 @@ class OrderEvent(BaseModel):
     note = models.TextField()
 
     def __str__(self):
-        return f'{self.order} - {self.event_status}'
+        return f'Order: {self.order.invoice_no} Order Status:{self.event_status.__str__()}'
