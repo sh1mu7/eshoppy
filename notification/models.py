@@ -20,4 +20,3 @@ class PersonalNotification(BaseModel):
     message = models.TextField()
     timestamp = models.DateTimeField()
     notification_type = models.SmallIntegerField(choices=constants.NotificationTypeChoices.choices)
-    # TODO : What would be the notification type?

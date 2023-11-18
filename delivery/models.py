@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.utils.functional import cached_property
+
 from coreapp.base import BaseModel
 from delivery import constants
 
@@ -22,7 +24,7 @@ class DeliveryRequest(BaseModel):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
     staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='request_staff')
     rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='request_rider')
-    is_accepted = models.BooleanField(default=True)
+    is_accepted = models.BooleanField(default=False)
 
 
 class OrderDelivery(BaseModel):

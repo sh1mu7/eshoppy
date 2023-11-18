@@ -1,14 +1,14 @@
-from rest_framework.serializers import ModelSerializer
-from delivery.models import DeliveryRider, RiderDocuments
+from rest_framework import serializers
+from delivery.models import DeliveryRider, RiderDocuments, DeliveryRequest
 
 
-class DocumentsSerializer(ModelSerializer):
+class DocumentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RiderDocuments
         fields = ('title', 'documents')
 
 
-class DeliveryRiderDocumentsSerializer(ModelSerializer):
+class DeliveryRiderDocumentsSerializer(serializers.ModelSerializer):
     rider_documents = DocumentsSerializer(many=True)
 
     class Meta:
@@ -25,3 +25,13 @@ class DeliveryRiderDocumentsSerializer(ModelSerializer):
             documents.append(rider_document)
         delivery_rider.rider_documents.set(documents)
         return delivery_rider
+
+
+class DeliveryRequestAcceptOrRejectSerializer(serializers.Serializer):
+    is_accepted = serializers.BooleanField()
+
+
+class RiderDeliveryRequestListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryRequest
+        fields = ('order', 'is_accepted')

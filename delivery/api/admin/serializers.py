@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from coreapp import roles
 from coreapp.models import User
+from delivery.models import DeliveryCharge
 from sales.api.admin.serializers import AdminOrderItemSerializer
 from sales.models import OrderEvent, Order
 
@@ -13,8 +14,9 @@ class AdminOrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('created_at', 'id', 'invoice_no', 'customer_name', 'customer_mobile', 'item_count', 'order_status',
-                  'delivery_status', 'total')
+        fields = (
+            'created_at', 'id', 'invoice_no', 'customer_name', 'customer_mobile', 'item_count', 'order_status', 'total'
+        )
 
 
 class AdminOrderDetailSerializer(serializers.ModelSerializer):
@@ -40,6 +42,7 @@ class AdminOrderAssignRider(serializers.Serializer):
 
         if rider_id and not User.objects.filter(id=rider_id, role=roles.UserRoles.DELIVERY_STAFF).exists():
             raise serializers.ValidationError({'user_id': [_('Invalid user id')]})
+        return attrs
 
 
 class AdminOrderEventSerializer(serializers.ModelSerializer):
@@ -52,3 +55,11 @@ class AdminOrderCancelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('id', 'cancel_reason', 'cancel_reason_note')
+
+
+class AdminDeliveryChargeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryCharge
+        fields = ('km_distance', 'amount', 'is_active')
+
+

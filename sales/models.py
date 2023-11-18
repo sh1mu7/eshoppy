@@ -63,10 +63,10 @@ class Order(BaseModel):
     payment_status = models.SmallIntegerField(choices=constants.PaymentStatus.choices,
                                               default=constants.PaymentStatus.PENDING)
     estd_delivery_time = models.DateTimeField(null=True, blank=True)
-    delivery_status = models.SmallIntegerField(choices=constants.DeliveryStatus.choices,
-                                               default=constants.OrderStatus.PENDING)
     order_status = models.SmallIntegerField(choices=constants.OrderStatus.choices,
-                                            default=constants.OrderStatus.PROCESSING)
+                                            default=constants.OrderStatus.PENDING)
+    order_stage = models.SmallIntegerField(choices=constants.OrderStage.choices,
+                                           default=constants.OrderStage.ORDER_PLACED)
     has_cancel_request = models.BooleanField(default=False)
     cancel_reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE, null=True, blank=True)
     cancel_reason_note = models.TextField(null=True, blank=True)

@@ -10,6 +10,7 @@ urlpatterns = [
     path('delivery/', include('delivery.api.urls')),
     path('package/', include('subscription.api.urls')),
     path('reports/', include('reports.api.urls')),
+    path('notification/', include('notification.api.urls')),
     path('utility/', include('utility.api.urls')),
     path('blog/', include('blog.api.urls')),
 ]
