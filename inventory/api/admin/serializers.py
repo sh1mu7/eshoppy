@@ -91,6 +91,7 @@ class AdminProductCreateSerializer(serializers.ModelSerializer):
         if has_variant:
             try:
                 data = attrs['product_variants']
+                # TODO : also check if the product variant array is empty or not
             except KeyError:
                 raise serializers.ValidationError({'product_variants': [_('variant data not found')]})
         return attrs

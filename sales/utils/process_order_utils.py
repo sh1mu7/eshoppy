@@ -31,6 +31,7 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
             cart_item = Cart.objects.get(user=customer, id=cart_item_id)
             product = cart_item.product
             if not product.has_stock:
+                # TODO: this needs to be done in serializer validate method
                 raise ProductOutOfStockError(f'{product.product_name} is out of stock.')
             order_item = OrderItem.objects.create(
                 order=order, customer=customer, product=product, quantity=cart_item.quantity,
@@ -42,6 +43,7 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
             if cart_item.product_variant:
                 product_variant = ProductVariant.objects.get(id=cart_item.product_variant.id)
                 if not product_variant.has_stock:
+                    # TODO: this needs to be done in serializer validate method
                     raise ProductOutOfStockError(
                         f'The variant of the product "{product_variant.product.name}" with code {product_variant.code}'
                         f' is currently unavailable.')
@@ -59,5 +61,6 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
             order.coupon_id = coupon.id
             discount += coupon_utils.discount_after_coupon(subtotal, coupon)
         except Coupon.DoesNotExist:
+            # TODO: this needs to be done in serializer validate method
             raise CouponNotFoundError('Coupon not found.')
     return subtotal, vat_amount, discount

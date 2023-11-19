@@ -93,11 +93,14 @@ class CustomerAddressAPI(viewsets.ModelViewSet):
     permission_classes = [IsCustomer, ]
     queryset = Address.objects.all()
     serializer_class = serializers.CustomerAddressSerializer
+    # TODO: if any address is belong to any order user cannot delete that address
+    # if the user deletes that address order will be also deleted by cascade rules
 
 
 class CustomerReasonAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
     permission_classes = [IsCustomer, ]
     queryset = Reason.objects.all()
+    # TODO: only active reason will be shown to customer
     serializer_class = serializers.CustomerReasonSerializer
 
 
@@ -108,5 +111,6 @@ class CustomerCouponAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
 
     def get_queryset(self):
         user = self.request.user.id
+        # TODO: This query will return error it should be customers__in=[user]
         queryset = Coupon.objects.filter(customers=user)
         return queryset
