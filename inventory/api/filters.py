@@ -25,6 +25,7 @@ class BrandFilter(dj_filters.FilterSet):
 
     class Meta:
         model = Brand
+        # TODO : Is active filter missing
         fields = ('name',)
 
 
@@ -33,6 +34,7 @@ class CategoryFilter(dj_filters.FilterSet):
 
     class Meta:
         model = Category
+        # TODO : Is active filter missing
         fields = ('parent', 'name')
 
 

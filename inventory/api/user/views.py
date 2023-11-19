@@ -47,6 +47,7 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         try:
             product = self.get_object()
             related_products = Product.objects.filter(category=product.category).exclude(id=product.id)
+            # TODO: query needs to be updated based on category also based on name.
             serializer = serializers.CustomerProductListSerializer(related_products, many=True)
             return Response(serializer.data)
         except Product.DoesNotExist:
@@ -58,12 +59,15 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         try:
             product = self.get_object()
             product_variant = ProductVariant.objects.get(id=variant_id)
+            # TODO: error query. the query should be product=product and variant=variant
             calculated_price = product.price + product_variant.additional_price
             data = {
                 'calculated_price': calculated_price
+                # TODO: need product id, variant id, vat amount, reward also
             }
             return Response(data, status=status.HTTP_200_OK)
         except Product.DoesNotExist:
+            # TODO: it should be ObjectDoesNotExist
             return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -72,3 +76,4 @@ class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, m
     permission_classes = [IsCustomer, ]
     queryset = ProductReview.objects.all()
     serializer_class = serializers.CustomerProductReviewSerializer
+    #TODO: need filter here

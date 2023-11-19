@@ -8,5 +8,6 @@ router.register('wishlist', UserWishlistAPI)
 router.register('cart', UserCartAPI)
 
 urlpatterns = [
-    path('', include(router.urls))
+
 ]
+urlpatterns += router.urls
