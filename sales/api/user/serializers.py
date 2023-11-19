@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from cart.models import Cart
 from coreapp.models import Address
-from ...models import Reason, Coupon
+from ...models import Reason, Coupon, Order
 
 
 class UserCheckOutSerializer(serializers.Serializer):
@@ -27,6 +27,15 @@ class CustomerAddressSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         return Address.objects.create(**validated_data, user=user)
+
+
+class CustomerOrderListSerializer(serializers.ModelSerializer):
+    item_count = serializers.IntegerField(source='get_item_count')
+    tracking_number = serializers.CharField(source='invoice_no')
+
+    class Meta:
+        model = Order
+        fields = ('id', 'tracking_number', 'item_count', 'created_at', 'total')
 
 
 class CustomerCouponSerializer(serializers.ModelSerializer):

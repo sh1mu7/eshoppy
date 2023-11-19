@@ -85,6 +85,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_country_name(self):
         return self.country.name
 
+    def get_default_address(self):
+        try:
+            return self.user_address.get(is_default=True)
+        except Address.DoesNotExist:
+            return None
+
 
 class UserConfirmation(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

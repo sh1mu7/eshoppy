@@ -3,10 +3,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from coreapp.models import Country, Document
+from coreapp.models import Country, Document, Address
 from coreapp.utils import auth_utils, otp_utils
 
 UserModel = get_user_model()
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = "__all__"
 
 
 class CountrySerializer(serializers.ModelSerializer):

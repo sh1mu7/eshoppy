@@ -89,6 +89,12 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+class CustomerOrderAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [IsCustomer, ]
+    queryset = Order.objects.all()
+    serializer_class = serializers.CustomerOrderListSerializer
+
+
 class CustomerAddressAPI(viewsets.ModelViewSet):
     permission_classes = [IsCustomer, ]
     queryset = Address.objects.all()

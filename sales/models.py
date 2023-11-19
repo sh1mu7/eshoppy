@@ -75,6 +75,7 @@ class Order(BaseModel):
     def get_order_item(self):
         return self.orderitem_set.all()
 
+
     @cached_property
     def get_item_count(self):
         return self.orderitem_set.count()
