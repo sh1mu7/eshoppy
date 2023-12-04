@@ -1,9 +1,11 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import UserSystemAlertAPI
+from .views import UserSystemAlertAPI, UserPersonalNotificationAPI
 
 router = routers.DefaultRouter()
-router.register('system', UserSystemAlertAPI)
+router.register('system-alert', UserSystemAlertAPI)
+router.register('personal-notification', UserPersonalNotificationAPI)
 urlpatterns = [
-    path('', include(router.urls))
+
 ]
+urlpatterns += router.urls

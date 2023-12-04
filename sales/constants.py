@@ -4,6 +4,9 @@ from django.utils.translation import gettext_lazy as _
 
 class ReasonType(models.IntegerChoices):
     CHANGE_OF_MIND = 0, _('Change Of Mind')
+    ITEM_OUT_OF_STOCK = 1, _('Item Out of Stock')
+    CUSTOMER_REQUEST = 2, _('Customer Request')
+    BY_ADMIN = 3, _('By Admin')
 
 
 class OrderStatus(models.IntegerChoices):
@@ -28,6 +31,12 @@ class OrderEventStatus(models.IntegerChoices):
     REQUEST_SENT = 1, _('Request Sent')
     DELIVERYMAN_ASSIGNED = 2, _('Deliveryman Assigned')
     DELIVERED = 3, _('Delivered')
+
+
+class OrderCancelStatus(models.IntegerChoices):
+    PENDING = 0, _('Pending')
+    ACCEPT = 1, _('Accept')
+    REJECT = 2, _('Reject')
 
 
 class DeliveryStatus(models.IntegerChoices):

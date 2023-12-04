@@ -10,10 +10,11 @@ from coreapp.models import User
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='get_product_name')
+    image_url = serializers.CharField(source='get_product_image_url')
 
     class Meta:
         model = OrderItem
-        fields = ('id', 'product', 'product_name', 'quantity', 'price', 'subtotal')
+        fields = ('id', 'product', 'image_url', 'product_name', 'quantity', 'price', 'subtotal')
 
 
 class AdminOrderListSerializer(serializers.ModelSerializer):
@@ -44,7 +45,13 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class AdminOrderUpdateSerializer(serializers.ModelSerializer):
+# class AdminOrderUpdateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Order
+#         fields = ('id', 'order_status', 'order_stage', 'cancel_reason', 'cancel_reason_note')
+#
+
+class AdminOrderCancel(serializers.Serializer):
     class Meta:
         model = Order
         fields = ('id', 'order_status', 'order_stage', 'cancel_reason', 'cancel_reason_note')
@@ -62,6 +69,11 @@ class AdminOrderAssignRider(serializers.Serializer):
 
 class AdminOrderChangePaymentStatus(serializers.Serializer):
     payment_status = serializers.IntegerField(allow_null=False, required=True)
+
+
+class AdminOrderStatusChangeSerializer(serializers.Serializer):
+    order = serializers.IntegerField(allow_null=False, required=True)
+    note = serializers.IntegerField(allow_null=False, required=True)
 
 
 class AdminOrderEventSerializer(serializers.ModelSerializer):

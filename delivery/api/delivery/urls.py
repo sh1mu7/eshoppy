@@ -1,10 +1,14 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import RiderProfileAPI, RiderDeliveryRequestAPI
+from .views import DeliveryManProfileAPI, RiderDeliveryRequestAPI, RiderOrderDeliveryAPI
 
 router = routers.DefaultRouter()
-router.register('profile', RiderProfileAPI)
+
 router.register('delivery_request', RiderDeliveryRequestAPI)
+router.register('delivery', RiderOrderDeliveryAPI)
+router.register('profile', DeliveryManProfileAPI)
 urlpatterns = [
-    path('', include(router.urls))
+
 ]
+
+urlpatterns += router.urls

@@ -17,6 +17,7 @@ class DocumentChoices(models.IntegerChoices):
     OTHER = 3, _("Other")
 
 
-class MembershipType(models.IntegerChoices):
-    PREMIUM = 0, _('Premium')
-    GENERAL = 1, _('General')
+class MembershipAndPackageType(models.IntegerChoices):
+    BASIC = 0, _('Basic')
+    PREMIUM = 1, _('Premium')
+    VIP = 2, _('VIP')

@@ -1,14 +1,20 @@
+from datetime import timedelta, datetime
+
+from dateutil.relativedelta import relativedelta
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 
 from cart.models import Cart
+from coreapp.constants import MembershipAndPackageType
 from coreapp.utils.auth_utils import get_client_info
+from delivery.utils.distance_utils import haversine, nearest_delivery_charge
 from inventory.models import ProductVariant, Product
 from sales import constants
 from sales.models import OrderItem, Coupon, OrderEvent
 from sales.utils import coupon_utils
-from utility.models import Payment
+from subscription.models import SubscriptionHistory
+from utility.models import Payment, GlobalSettings
 from utility import constants as payment_constants
 
 
@@ -30,28 +36,23 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
         try:
             cart_item = Cart.objects.get(user=customer, id=cart_item_id)
             product = cart_item.product
-            if not product.has_stock:
-                # TODO: this needs to be done in serializer validate method
-                raise ProductOutOfStockError(f'{product.product_name} is out of stock.')
+
             order_item = OrderItem.objects.create(
                 order=order, customer=customer, product=product, quantity=cart_item.quantity,
                 vat_amount=product.get_vat_amount, product_variant=cart_item.product_variant)
+
             order_item.save()
             subtotal += order_item.subtotal
             vat_amount += order_item.get_vat_amount
 
             if cart_item.product_variant:
                 product_variant = ProductVariant.objects.get(id=cart_item.product_variant.id)
-                if not product_variant.has_stock:
-                    # TODO: this needs to be done in serializer validate method
-                    raise ProductOutOfStockError(
-                        f'The variant of the product "{product_variant.product.name}" with code {product_variant.code}'
-                        f' is currently unavailable.')
-                product_variant.quantity = product_variant.quantity - cart_item.quantity
+                product_variant.quantity -= cart_item.quantity
                 product_variant.save()
             else:
-                product.quantity = product.quantity - cart_item.quantity
+                product.quantity -= cart_item.quantity
                 product.save()
+
         except Cart.DoesNotExist:
             raise CartItemNotFoundError('Cart item not found.')
 
@@ -61,6 +62,26 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
             order.coupon_id = coupon.id
             discount += coupon_utils.discount_after_coupon(subtotal, coupon)
         except Coupon.DoesNotExist:
-            # TODO: this needs to be done in serializer validate method
             raise CouponNotFoundError('Coupon not found.')
     return subtotal, vat_amount, discount
+
+
+def adjust_estd_delivery_time(order):
+    now = datetime.now()
+    if order.customer.membership_type == MembershipAndPackageType.BASIC:
+        return (now + relativedelta(days=5)).date()
+    elif order.customer.membership_type == MembershipAndPackageType.PREMIUM:
+        return (now + relativedelta(days=4)).date()
+    elif order.customer.membership_type == MembershipAndPackageType.VIP:
+        return (now + relativedelta(days=2)).date()
+    elif order.customer.membership_type is None:
+        return (now + relativedelta(days=7)).date()
+
+
+def shipping_charge_calculate(customer_latitude, customer_longitude):
+    global_setting = GlobalSettings.objects.first()
+    store_latitude = global_setting.latitude
+    store_longitude = global_setting.longitude
+    distance = haversine(customer_latitude, customer_longitude, store_latitude, store_longitude)
+    shipping_charge = nearest_delivery_charge(round(distance, 2))
+    return shipping_charge

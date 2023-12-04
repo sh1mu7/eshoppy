@@ -1,5 +1,4 @@
 from django_filters import rest_framework as dj_filters
-
 from inventory.models import Category, Brand, Product, ProductReview
 
 
@@ -26,7 +25,7 @@ class BrandFilter(dj_filters.FilterSet):
     class Meta:
         model = Brand
         # TODO : Is active filter missing
-        fields = ('name',)
+        fields = ('name', 'is_active')
 
 
 class CategoryFilter(dj_filters.FilterSet):
@@ -35,7 +34,7 @@ class CategoryFilter(dj_filters.FilterSet):
     class Meta:
         model = Category
         # TODO : Is active filter missing
-        fields = ('parent', 'name')
+        fields = ('parent', 'name', 'is_active')
 
 
 class ProductFilter(dj_filters.FilterSet):
@@ -50,7 +49,7 @@ class ProductFilter(dj_filters.FilterSet):
 class ProductReviewFilter(dj_filters.FilterSet):
     class Meta:
         model = ProductReview
-        fields = ('product', )
+        fields = ('product', 'rating')
 
 
 class CustomerProductFilter(dj_filters.FilterSet):

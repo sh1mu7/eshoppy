@@ -2,6 +2,8 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.functional import cached_property
+
+from coreapp import constants
 from coreapp.base import BaseModel
 
 
@@ -9,6 +11,7 @@ class Package(BaseModel):
     package_name = models.CharField(max_length=100)
     slug = models.SlugField(editable=False, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    package_type = models.SmallIntegerField(choices=constants.MembershipAndPackageType.choices)
     duration = models.IntegerField(default=1)
     details = models.TextField()
     is_active = models.BooleanField(default=True)
@@ -25,6 +28,7 @@ class SubscriptionHistory(BaseModel):
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     package = models.ForeignKey('subscription.Package', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    membership_type = models.SmallIntegerField(choices=constants.MembershipAndPackageType.choices)
     start_date = models.DateField(auto_now_add=True)
     expiry_date = models.DateField()
     is_expired = models.BooleanField(default=False, editable=False)
@@ -56,7 +60,6 @@ class SubscriptionHistory(BaseModel):
     def get_is_expired(self):
         now = datetime.now()
         expiry_datetime = datetime.combine(self.expiry_date, datetime.min.time())
-
         if expiry_datetime < now:
             return True
         else:

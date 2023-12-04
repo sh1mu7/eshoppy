@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from ...models import SystemAlert
+from ...models import SystemAlert, PersonalNotification
 
 
 class AdminSystemAlertSerializer(ModelSerializer):
@@ -13,3 +13,11 @@ class AdminSystemAlertSerializer(ModelSerializer):
         system_alert.users.set(users)
         system_alert.save()
         return system_alert
+
+
+class AdminPersonalNotificationSerializer(ModelSerializer):
+    class Meta:
+        model = PersonalNotification
+        fields = '__all__'
+
+

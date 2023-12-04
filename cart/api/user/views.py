@@ -69,9 +69,9 @@ class UserCartAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
         if cart_items:
             for item in cart_items:
                 if item.product_variant:
-                    subtotal += item.product.price + item.product_variant.additional_price
+                    subtotal += (item.product.price + item.product_variant.additional_price) * item.quantity
                 else:
-                    subtotal += item.product.price
+                    subtotal += item.product.price * item.quantity
                 vat += item.product.get_vat_amount * item.quantity
         if coupon_code:
             try:

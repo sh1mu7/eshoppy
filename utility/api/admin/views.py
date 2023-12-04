@@ -20,7 +20,8 @@ class GlobalSettingsAPI(views.APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        responses={200: serializers.GlobalSettingsSerializer}
+        responses={200: serializers.GlobalSettingsSerializer},
+        request=serializers.GlobalSettingsSerializer
     )
     def post(self, request):
         global_settings = GlobalSettings.objects.first()

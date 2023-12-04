@@ -1,5 +1,7 @@
 import math
 
+from delivery.models import DeliveryCharge
+
 
 def haversine(lat1, lon1, lat2, lon2):
     """
@@ -28,3 +30,10 @@ def haversine(lat1, lon1, lat2, lon2):
     distance = R * c
 
     return distance
+
+
+def nearest_delivery_charge(distance):
+    given_delivery_charge = DeliveryCharge.objects.filter(is_active=True)
+    nearest_charge = min(given_delivery_charge, key=lambda charge: abs(charge.km_distance - distance))
+    print(nearest_charge.amount)
+    return nearest_charge.amount

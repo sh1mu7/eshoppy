@@ -62,11 +62,12 @@ class Order(BaseModel):
     payment_method = models.SmallIntegerField(choices=PaymentMethod.choices)
     payment_status = models.SmallIntegerField(choices=constants.PaymentStatus.choices,
                                               default=constants.PaymentStatus.PENDING)
-    estd_delivery_time = models.DateTimeField(null=True, blank=True)
+    estd_delivery_time = models.DateField(null=True, blank=True)
     order_status = models.SmallIntegerField(choices=constants.OrderStatus.choices,
                                             default=constants.OrderStatus.PENDING)
     order_stage = models.SmallIntegerField(choices=constants.OrderStage.choices,
                                            default=constants.OrderStage.ORDER_PLACED)
+    cancel_status = models.SmallIntegerField(choices=constants.OrderCancelStatus.choices, default=None, null=True)
     has_cancel_request = models.BooleanField(default=False)
     cancel_reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE, null=True, blank=True)
     cancel_reason_note = models.TextField(null=True, blank=True)
@@ -74,7 +75,6 @@ class Order(BaseModel):
     @cached_property
     def get_order_item(self):
         return self.orderitem_set.all()
-
 
     @cached_property
     def get_item_count(self):
@@ -117,6 +117,10 @@ class OrderItem(BaseModel):
         return self.product.name
 
     @cached_property
+    def get_product_image_url(self):
+        return self.product.get_thumbnail_url
+
+    @cached_property
     def get_product_price(self):
         if self.product_variant:
             price = self.product_variant.additional_price + self.product.price
@@ -153,7 +157,7 @@ class OrderItem(BaseModel):
 
 
 class OrderEvent(BaseModel):
-    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
+    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, related_name='events')
     event_status = models.SmallIntegerField(choices=constants.OrderEventStatus.choices,
                                             default=constants.OrderEventStatus.ORDER_PLACED)
     note = models.TextField()

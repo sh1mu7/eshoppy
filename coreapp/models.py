@@ -28,7 +28,7 @@ class Address(BaseModel):
     road = models.CharField(max_length=255)
     address = models.TextField()
     zip_code = models.CharField(max_length=10)
-    latitude = models.DecimalField(max_digits=20, decimal_places=16, default=0.00)
+    latitude = models.DecimalField(max_digits=20, decimal_places=6, default=0.00)
     longitude = models.DecimalField(max_digits=20, decimal_places=16, default=0.00)
     is_default = models.BooleanField(default=False)
 
@@ -57,8 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     role = models.IntegerField(choices=roles.UserRoles.choices, default=roles.UserRoles.CUSTOMER)
     reward_points = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    membership_type = models.SmallIntegerField(choices=constants.MembershipType.choices,
-                                               default=constants.MembershipType.GENERAL)
+    membership_type = models.SmallIntegerField(choices=constants.MembershipAndPackageType.choices, null=True)
     device_id = models.CharField(max_length=255, null=True)
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
@@ -84,6 +83,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     @cached_property
     def get_country_name(self):
         return self.country.name
+
+    def get_membership_type(self):
+        if self.membership_type:
+            return self.membership_type
+        else:
+            return None
 
     def get_default_address(self):
         try:

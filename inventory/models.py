@@ -100,7 +100,6 @@ class Product(BaseModel):
         if self.has_variant:
             return f"{self.name} - {self.product_variants.first().variant_option.name}"
         else:
-
             return self.name
 
     @cached_property

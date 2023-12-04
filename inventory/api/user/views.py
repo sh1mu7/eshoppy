@@ -1,3 +1,6 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
 from rest_framework.decorators import action
@@ -46,8 +49,8 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
     def get_related_product(self, request, pk=None):
         try:
             product = self.get_object()
-            related_products = Product.objects.filter(category=product.category).exclude(id=product.id)
-            # TODO: query needs to be updated based on category also based on name.
+            related_products = Product.objects.filter(
+                Q(category=product.category) | Q(name__icontains=product.name)).exclude(id=product.id)
             serializer = serializers.CustomerProductListSerializer(related_products, many=True)
             return Response(serializer.data)
         except Product.DoesNotExist:
@@ -58,17 +61,20 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
     def calculate_price(self, request, pk=None, variant_id=None):
         try:
             product = self.get_object()
-            product_variant = ProductVariant.objects.get(id=variant_id)
-            # TODO: error query. the query should be product=product and variant=variant
+        except ObjectDoesNotExist:
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            product_variant = ProductVariant.objects.get(id=variant_id, product=product)
             calculated_price = product.price + product_variant.additional_price
             data = {
-                'calculated_price': calculated_price
-                # TODO: need product id, variant id, vat amount, reward also
+                'calculated_price': calculated_price,
+                'variant_id': product_variant.id,
+                'vat_amount': product.vat,
+                'reward_amount': product.reward_points
             }
             return Response(data, status=status.HTTP_200_OK)
-        except Product.DoesNotExist:
-            # TODO: it should be ObjectDoesNotExist
-            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({'detail': _("Invalid product variant selection")}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -76,4 +82,5 @@ class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, m
     permission_classes = [IsCustomer, ]
     queryset = ProductReview.objects.all()
     serializer_class = serializers.CustomerProductReviewSerializer
-    #TODO: need filter here
+    filter_backends = (dj_filters.DjangoFilterBackend,)
+    filterset_class = filters.ProductReviewFilter

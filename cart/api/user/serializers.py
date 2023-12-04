@@ -1,5 +1,7 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 from django.utils.translation import gettext_lazy as _
+
+from sales.models import Coupon, Order
 from ...utils import validate
 from inventory.models import ProductVariant, Product
 from ...models import Wishlist, Cart
@@ -65,7 +67,7 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ('user', 'product', 'variant', 'quantity', 'product_variant')
+        fields = ('id', 'user', 'product', 'variant', 'quantity', 'product_variant')
         read_only_fields = ('user',)
 
     def validate(self, attrs):
@@ -99,3 +101,19 @@ class UserCartUpdateSerializer(serializers.ModelSerializer):
 class CartPriceCalculationSerializer(serializers.Serializer):
     cart_list = serializers.ListField(allow_empty=False, allow_null=False)
     coupon_code = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        # Validate coupon code if provided
+        coupon_code = attrs.get('coupon_code')
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+            except Coupon.DoesNotExist:
+                raise serializers.ValidationError({'coupon_code': [_('Coupon not found.')]})
+        return attrs
+
+
+class OrderPriceCalculationSerializer(serializers.Serializer):
+    order_id = serializers.CharField(required=True, allow_null=False, )
+
+
