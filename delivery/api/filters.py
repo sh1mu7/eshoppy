@@ -11,7 +11,7 @@ class RiderDeliveryRequestFilter(filters.FilterSet):
 class RiderDeliveryStatus(filters.FilterSet):
     class Meta:
         model = OrderDelivery
-        fields = ('rider_delivery_status',)
+        fields = ('status',)
 
 
 

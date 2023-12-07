@@ -25,6 +25,7 @@ class GlobalSettings(BaseModel):
     youtube = models.CharField(max_length=100, null=True, blank=True)
     shipping_fee = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     vat_percentage = models.DecimalField(default=0, decimal_places=2, max_digits=10)
+    delivery_commission = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     min_withdraw_amount = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     max_withdraw_amount = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     payment_gateway_key = models.CharField(max_length=100)
@@ -146,15 +147,14 @@ class Payout(BaseModel):
     status = models.BooleanField(default=True)
 
 
-class Refund(models.Model):
+class Refund(BaseModel):
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='refunds_requested')
-    cancel_reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE)
-    canceled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                    related_name='refunds_processed')
+    payment = models.ForeignKey('utility.Payment', on_delete=models.CASCADE)
     user_type = models.IntegerField(choices=coreapp.roles.UserRoles.choices)
     comment = models.TextField()
     refundable_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_refunded = models.BooleanField(default=False)
 
 
 class Banner(BaseModel):

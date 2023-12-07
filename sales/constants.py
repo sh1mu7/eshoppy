@@ -41,11 +41,12 @@ class OrderCancelStatus(models.IntegerChoices):
 
 class DeliveryStatus(models.IntegerChoices):
     PENDING = 0, _('Pending')
-    OUT_FOR_DELIVERY = 1, _('Out for Delivery')
-    DELIVERED = 2, _('Delivered')
-    ATTEMPTED = 3, _('Delivery Attempted')
-    CANCELED = 4, _('Canceled')
-    RETURNED = 5, _('Returned')
+    ON_GOING = 1, _('On Going')
+    PICKED = 2, _('Picked')
+    ACTIVE = 3, _('Active')
+    COMPLETED = 4, _('Completed')
+    CANCELED = 5, _('Canceled')
+    RETURNED = 6, _('Returned')
 
 
 class PaymentStatus(models.IntegerChoices):

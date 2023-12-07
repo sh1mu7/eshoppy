@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult
+from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult, Refund
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):
@@ -51,3 +51,17 @@ class AdminSearchResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = SearchResult
         fields = "__all__"
+
+
+class RefundListAdminSerializer(serializers.ModelSerializer):
+    order_id = serializers.CharField(source='get_order_id')
+    customer_name = serializers.CharField(source='get_customer_name')
+    customer_phone = serializers.CharField(source='get_customer_phone')
+    payment_id = serializers.CharField(source='get_payment_id')
+
+    class Meta:
+        model = Refund
+        fields = (
+            'id', 'order', 'order_id', 'payment', 'payment_id', 'customer_name', 'customer_phone',
+            'refundable_amount', 'is_refunded', 'created_at'
+        )

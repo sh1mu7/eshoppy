@@ -4,6 +4,7 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
+router.register(r"refund", views.RefundAdminAPI)
 router.register(r"page", views.PageAdminAPI)
 router.register(r"currency", views.AdminCurrencyAPI)
 router.register(r"banner", views.AdminBannerAPI)

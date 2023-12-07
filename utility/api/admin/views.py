@@ -1,11 +1,12 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, mixins, views, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from django_filters import rest_framework as dj_filters
 from . import serializers
 from .. import filters
-from ...models import GlobalSettings, Page, Currency, FAQ, Banner, SearchResult
+from ...models import GlobalSettings, Page, Currency, FAQ, Banner, SearchResult, Refund
 
 
 class GlobalSettingsAPI(views.APIView):
@@ -29,6 +30,25 @@ class GlobalSettingsAPI(views.APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class RefundAdminAPI(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAdminUser]
+    queryset = Refund.objects.all()
+    serializer_class = serializers.RefundListAdminSerializer
+
+    # filter_backends = [dj_filters.DjangoFilterBackend]
+    # filterset_class = filters.RefundAdminFilter
+
+    @extend_schema(request=False)
+    @action(detail=True, methods=['get'], url_path='make_refund')
+    def make_refund(self, request, pk=None):
+        refund = Refund.objects.get(id=pk)
+        if refund.is_refunded is True:
+            return Response({'detail': 'Refund already completed.'})
+        refund.is_refunded = True
+        refund.save()
+        return Response({'detail': 'Refunded Successfully.'})
 
 
 class PageAdminAPI(viewsets.ModelViewSet):

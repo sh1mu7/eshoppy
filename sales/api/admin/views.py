@@ -41,6 +41,7 @@ class AdminOrderAPI(viewsets.ReadOnlyModelViewSet):
         order.order_staff = order_staff
         order.save()
         return Response({'detail': 'Order cancel request has been rejected.'}, status=status.HTTP_200_OK)
+
     @extend_schema(request=None)
     @action(detail=True, methods=['post'], url_path='cancel/reject')
     def cancel_reject(self, request, pk=None):

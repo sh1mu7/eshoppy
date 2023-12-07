@@ -97,11 +97,12 @@ class RiderOrderDeliverySerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderDelivery
         fields = (
-            'order', 'order_id', 'customer', 'order_count', 'payment_status', 'address', 'longitude', 'latitude',
-            'rider')
+            'id', 'order', 'order_id', 'customer', 'order_count', 'payment_status', 'address', 'longitude', 'latitude',
+            'rider'
+        )
 
     def get_order_count(self, obj):
-        filtered_orders = OrderDelivery.objects.filter(rider=obj.rider, rider_delivery_status=obj.rider_delivery_status)
+        filtered_orders = OrderDelivery.objects.filter(rider=obj.rider, status=obj.status)
         return filtered_orders.count()
 
 
@@ -109,3 +110,10 @@ class RiderStatusChangeSerializer(serializers.Serializer):
     rider_delivery_status = serializers.IntegerField(allow_null=False, required=True)
 
 
+class RiderVerifyOTPSerializer(serializers.Serializer):
+    otp = serializers.CharField(allow_blank=False, required=True)
+
+
+class RiderLiverTrackSerializer(serializers.Serializer):
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, allow_null=False)
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, allow_null=False)

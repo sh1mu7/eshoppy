@@ -2,9 +2,7 @@ import decimal
 import string
 import random
 from sales import constants
-from utility.models import GlobalSettings
-
-settings = GlobalSettings.objects.all().first()
+from utility.utils.settings_utils import settings_object
 
 
 def discount_after_coupon(subtotal, coupon):
@@ -29,7 +27,7 @@ def discount_after_coupon(subtotal, coupon):
                 else:
                     return discount_amount
     else:
-        return settings.get_shipping_fee
+        return settings_object.shipping_fee
 
 
 def generate_coupon_code():

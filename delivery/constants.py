@@ -8,8 +8,4 @@ class CommissionStatus(models.IntegerChoices):
     ON_PROCESSING = 2, _('On Processing')
 
 
-class RiderOrderDeliveryStatus(models.IntegerChoices):
-    ON_GOING = 0, _('On Going')
-    PICKED = 1, _('Picked')
-    ACTIVE = 2, _('Active')
-    COMPLETED = 3, _('Completed')
+

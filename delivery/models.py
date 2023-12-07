@@ -42,8 +42,6 @@ class OrderDelivery(BaseModel):
     rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='delivery_rider')
     estd_delivery_time = models.DateField()
     status = models.SmallIntegerField(choices=order_constants.DeliveryStatus.choices)
-    rider_delivery_status = models.SmallIntegerField(choices=constants.RiderOrderDeliveryStatus.choices,
-                                                     default=constants.RiderOrderDeliveryStatus.ACTIVE)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -65,7 +63,7 @@ class DeliveryCharge(BaseModel):
 
 
 class RiderCommission(BaseModel):
-    rider = models.ForeignKey(DeliveryRider, on_delete=models.CASCADE)
+    rider = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE)
     commission_status = models.SmallIntegerField(choices=constants.CommissionStatus.choices,
