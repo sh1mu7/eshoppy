@@ -65,6 +65,7 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 order.vat = vat_amount
                 order.shipping_charge = dd
                 total += subtotal + vat_amount + shipping_charge - discount
+                total = "{:.2f}".format(total)
                 order.discount = discount
                 order.total = total
                 order.estd_delivery_time = estimated_delivery_time
@@ -76,11 +77,12 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 OrderEvent.objects.create(order=order, event_status=constants.OrderEventStatus.ORDER_PLACED,
                                           note='Order has been placed successfully').save()
                 ip, user_agent = get_client_info(request)
-
                 payment = Payment.objects.create(
                     amount=total, ip_address=ip, order=order, status=payment_constants.PaymentStatus.PENDING,
                     transaction_type=payment_constants.TransactionType.ORDER, payment_method=payment_method,
-                    user=self.request.user).save()
+                    user=self.request.user)
+                payment.save()
+
                 if not payment_method == payment_constants.PaymentMethod.CASH:
                     bill_url = generate_bill_url(payment)
                     if not bill_url:

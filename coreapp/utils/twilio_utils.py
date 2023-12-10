@@ -4,7 +4,7 @@ from utility.models import GlobalSettings
 
 
 def get_system_settings():
-    global_settings = GlobalSettings.objects.first()
+    global_settings = GlobalSettings.objects.all()[:1]
     return global_settings
 
 

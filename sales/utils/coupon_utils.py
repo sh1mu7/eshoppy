@@ -1,8 +1,10 @@
 import decimal
 import string
 import random
+from coreapp.utils.twilio_utils import get_system_settings
 from sales import constants
-from utility.utils.settings_utils import settings_object
+
+settings_object = get_system_settings()
 
 
 def discount_after_coupon(subtotal, coupon):

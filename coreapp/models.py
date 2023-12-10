@@ -67,6 +67,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     bio = models.TextField(blank=True)
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['mobile']
     objects = MyUserManager()
 
     def __str__(self):

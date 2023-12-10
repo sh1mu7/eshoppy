@@ -28,10 +28,8 @@ class GlobalSettings(BaseModel):
     delivery_commission = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     min_withdraw_amount = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     max_withdraw_amount = models.DecimalField(default=0, decimal_places=2, max_digits=10)
-    payment_gateway_key = models.CharField(max_length=100)
-    payment_gateway_secret = models.CharField(max_length=100)
-    payment_gateway_uid = models.CharField(max_length=100)
-    payment_gateway_server = models.CharField(max_length=100)
+    paypal_client_id = models.CharField(max_length=200)
+    paypal_client_secret = models.CharField(max_length=200)
     sms_server = models.CharField(max_length=100)
     sms_username = models.CharField(max_length=100)
     sms_phone_number = models.CharField(max_length=100)
@@ -115,7 +113,7 @@ class WalletRecharge(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     bill_code = models.CharField(max_length=100)
-    transaction_no = models.CharField(max_length=100)
+    transaction_no = models.UUIDField(default=uuid.uuid4, db_index=True, editable=False)
     note = models.TextField()
     is_paid = models.BooleanField(default=True)
 
@@ -136,8 +134,8 @@ class Payment(BaseModel):
     bill_url = models.TextField(null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.bill_uid
+    # def __str__(self):
+    #     return f"Payment #{self.uid} - Order #{self.order.invoice_no} - Amount: {self.amount}"
 
 
 class Payout(BaseModel):

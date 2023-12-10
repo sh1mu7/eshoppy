@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult
+from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult, WalletRecharge
 
 
 class UserGlobalSettingsSerializer(serializers.ModelSerializer):
