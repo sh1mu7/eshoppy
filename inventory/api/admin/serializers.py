@@ -1,10 +1,8 @@
-from django.db.models import F
-
-from coreapp.api.serializers import DocumentSerializer
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
+
 from coreapp.models import Document
 from ...models import Brand, Category, VariantGroup, VariantOption, Product, ProductVariant, ProductReview
-from rest_framework import serializers
 from ...utils.product_variants import create_product_variants, update_product_variants
 
 
@@ -38,7 +36,7 @@ class AdminCategorySerializer(serializers.ModelSerializer):
 class AdminVariantGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = VariantGroup
-        fields = ('group_name', 'is_active')
+        fields = ('id', 'group_name', 'is_active')
 
 
 class AdminVariantOptionSerializer(serializers.ModelSerializer):
@@ -49,6 +47,8 @@ class AdminVariantOptionSerializer(serializers.ModelSerializer):
 
 class AdminProductVariant(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, read_only=False)  # Done: turn of read only for id
+    variant_option_name = serializers.CharField(read_only=True,
+                                                source='get_variant_option_name')
 
     class Meta:
         model = ProductVariant
@@ -147,17 +147,18 @@ class AdminProductUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        has_variant = attrs.get('has_variant')
+        has_variant = attrs.get('has_variant', [])
         if has_variant:
             if 'product_variants' not in attrs:
                 raise serializers.ValidationError({'product_variants': [_('variant data not found')]})
         return attrs
 
     def update(self, instance, validated_data):
-        images = validated_data.pop('images')
+        images = validated_data.pop('images', None)
         variants_data = validated_data.pop('product_variants', [])
         Product.objects.filter(id=instance.id).update(**validated_data)
-        instance.images.set(images)
+        if images is not None:
+            instance.images.set(images)
         update_product_variants(instance, variants_data)
         return instance
 
@@ -189,10 +190,11 @@ class AdminProductReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name', read_only=True)
     product_name = serializers.CharField(source='product.get_product_name', read_only=True)
     product_image = serializers.CharField(source='product.get_thumbnail_url', read_only=True)
-    images_url = AdminDocumentSerializer(many=True, read_only=True)
+    images_review = AdminDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = ProductReview
         fields = (
-            'id', 'user_name', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images', 'images_url'
+            'id', 'user_name', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images',
+            'images_review'
         )

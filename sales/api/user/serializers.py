@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers, status
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
+
 from cart.models import Cart
 from coreapp.models import Address
 from delivery.models import OrderDelivery
@@ -28,12 +29,15 @@ class UserCheckOutSerializer(serializers.Serializer):
                 if not product.has_stock:
                     raise serializers.ValidationError({'cart_items': [f'{product.product_name} is out of stock.']})
             address = Address.objects.get(id=address_id, user=user)
+            print(address.latitude)
             return attrs
         except ObjectDoesNotExist:
             raise serializers.ValidationError({'detail': [_("Invalid address for the current user.")]})
 
 
 class CustomerAddressSerializer(serializers.ModelSerializer):
+    country_name = serializers.CharField(source='country.name', read_only=True)
+
     class Meta:
         model = Address
         fields = '__all__'
@@ -50,7 +54,10 @@ class CustomerOrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'tracking_number', 'item_count', 'created_at', 'total')
+        fields = (
+            'id', 'tracking_number', 'item_count', 'order_status', 'order_stage', 'payment_status', 'created_at',
+            'total'
+        )
 
 
 class CustomerOrderDetailSerializer(serializers.ModelSerializer):
@@ -66,7 +73,7 @@ class CustomerOrderDetailSerializer(serializers.ModelSerializer):
         fields = (
             "id", 'tracking_number', 'customer_name', 'customer_mobile', 'customer_email', 'item_count', 'order_items',
             'subtotal', 'vat', 'shipping_charge', 'customer_note', 'payment_method', 'discount', 'total',
-            'shipping_address', 'created_at', 'coupon', 'customer'
+            'shipping_address', 'created_at', 'coupon', 'customer', 'order_status', 'order_stage', 'payment_status'
         )
 
 
@@ -100,6 +107,12 @@ class CustomerCouponSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coupon
         fields = ('id', 'coupon_title', 'coupon_code', 'discount_type', 'discount_amount', 'expire_date', 'is_active')
+
+
+class CustomerReasonTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reason
+        fields = '__all__'
 
 
 class CustomerReasonSerializer(serializers.ModelSerializer):

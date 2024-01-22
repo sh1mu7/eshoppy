@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 
-import inventory.models
 from coreapp.base import BaseModel
 
 
@@ -20,6 +19,7 @@ class Wishlist(BaseModel):
 
     @cached_property
     def get_product_variant(self):
+        print(self.product.product_variants)
         return self.product.product_variants
 
     @cached_property
@@ -45,3 +45,11 @@ class Cart(BaseModel):
     @cached_property
     def get_product_thumbnail(self):
         return self.product.get_thumbnail_url
+
+    @cached_property
+    def get_product_variant_name(self):
+        return self.product_variant.code
+
+    @cached_property
+    def get_product_variant_option_name(self):
+        return self.variant.name

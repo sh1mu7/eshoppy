@@ -30,13 +30,13 @@ class CustomerProductReviewSerializer(serializers.ModelSerializer):
     user_image = serializers.CharField(source='user.get_image_url', read_only=True)
     product_name = serializers.CharField(source='product.get_product_name', read_only=True)
     product_image = serializers.CharField(source='product.get_thumbnail_url', read_only=True)
-    images_url = AdminDocumentSerializer(many=True, read_only=True)
+
+    # images = AdminDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = ProductReview
         fields = (
-            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images',
-            'images_url'
+            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images'
         )
 
     def validate(self, attrs):
@@ -63,24 +63,41 @@ class CustomerProductReviewSerializer(serializers.ModelSerializer):
         return product_review
 
 
+class CustomerProductReviewDetailSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_image = serializers.CharField(source='user.get_image_url', read_only=True)
+    product_name = serializers.CharField(source='product.get_product_name', read_only=True)
+    product_image = serializers.CharField(source='product.get_thumbnail_url', read_only=True)
+    # images = AdminDocumentSerializer(many=True, read_only=True)
+    images = AdminDocumentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProductReview
+        fields = (
+            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment',
+            'images'
+        )
+
+
 class CustomerProductListSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
     product_name = serializers.CharField(source='get_product_name', read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'product_name', 'price', 'average_rating', 'thumbnail_url')
+        fields = (
+        'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant','is_featured')
 
 
 class CustomerProductDetailSerializer(serializers.ModelSerializer):
     images = AdminDocumentSerializer(many=True, read_only=True)
     product_name = serializers.CharField(source='get_product_name', read_only=True)
-    product_review = CustomerProductReviewSerializer(many=True)
+    product_review = CustomerProductReviewDetailSerializer(many=True, read_only=True)
     product_variants = AdminProductVariant(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = (
-            'id', 'product_name', 'images', 'total_review', 'average_rating', 'price', 'description',
-            'product_specification', 'product_review','product_variants'
+            'id', 'product_name', 'images', 'total_review', 'quantity', 'average_rating', 'price', 'description',
+            'product_specification', 'product_review', 'product_variants'
         )

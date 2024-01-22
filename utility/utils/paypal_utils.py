@@ -51,9 +51,9 @@ def create_payment(payment):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {get_access_token()}",
     }
-
-    response = requests.post(f"{SERVER_URL}/v2/checkout/orders", json=payload, headers=headers)
-    print(response.json())
+    response = requests.post(
+        f"{SERVER_URL}/v2/checkout/orders", json=payload, headers=headers
+    )
     if response.status_code == 201 or response.status_code == 200:
         data = response.json()
         links = data["links"]
@@ -61,7 +61,6 @@ def create_payment(payment):
             if link["rel"] == "approve":
                 bill_uid = data["id"]
                 bill_url = link["href"]
-                print(bill_url)
                 payment.bill_url = bill_url
                 payment.bill_uid = bill_uid
                 payment.save()

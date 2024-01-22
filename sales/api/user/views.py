@@ -1,29 +1,27 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
+from django.utils.translation import gettext_lazy as _
+from django_filters import rest_framework as dj_filters
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db import transaction
-from django.utils.translation import gettext_lazy as _
 
-from cart.api.user.serializers import CartPriceCalculationSerializer, OrderPriceCalculationSerializer
+from cart.api.user.serializers import OrderPriceCalculationSerializer
 from cart.models import Cart
 from coreapp.models import Address
 from coreapp.permissions import IsCustomer
 from coreapp.utils.auth_utils import get_client_info
 from delivery.models import OrderDelivery
-from delivery.utils.distance_utils import haversine
-from inventory.models import Product, ProductVariant
-from sales.models import Reason, Coupon, Order, OrderItem, OrderEvent
+from sales.models import Reason, Coupon, Order, OrderEvent
+from utility import constants as payment_constants
 from utility.models import Payment
 from utility.utils.payment_utils import generate_bill_url
 from . import serializers
+from .. import filters
 from ... import constants
-from utility import constants as payment_constants
-from ...constants import OrderEventStatus
-from ...utils import coupon_utils
-from ...utils.process_order_utils import process_cart_and_coupon, adjust_estd_delivery_time, shipping_charge_calculate, \
-    CouponNotFoundError
+from ...utils.process_order_utils import process_cart_and_coupon, adjust_estd_delivery_time, shipping_charge_calculate
 
 
 class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -48,7 +46,6 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 address = Address.objects.get(id=address_id)
                 customer = self.request.user
                 vat_amount = 0
-                shipping_charge = 0
                 total = 0
                 subtotal = 0
                 discount = 0
@@ -57,13 +54,14 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     customer=customer, customer_email=customer.email, customer_phone=customer.mobile,
                     customer_name=customer.get_full_name, customer_latitude=address.latitude,
                     customer_longitude=address.longitude, shipping_address=address, payment_method=payment_method)
+                shipping_charge = shipping_charge_calculate(order)
                 subtotal, vat_amount, discount = process_cart_and_coupon(customer, subtotal, vat_amount, order,
                                                                          cart_items_id, coupon_code)
+
                 estimated_delivery_time = adjust_estd_delivery_time(order)
-                dd = shipping_charge_calculate(order.customer_latitude, order.customer_longitude)
                 order.subtotal = subtotal
                 order.vat = vat_amount
-                order.shipping_charge = dd
+                order.shipping_charge = shipping_charge
                 total += subtotal + vat_amount + shipping_charge - discount
                 total = "{:.2f}".format(total)
                 order.discount = discount
@@ -82,7 +80,6 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     transaction_type=payment_constants.TransactionType.ORDER, payment_method=payment_method,
                     user=self.request.user)
                 payment.save()
-
                 if not payment_method == payment_constants.PaymentMethod.CASH:
                     bill_url = generate_bill_url(payment)
                     if not bill_url:
@@ -108,6 +105,8 @@ class CustomerOrderAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Re
     permission_classes = [IsCustomer, ]
     queryset = Order.objects.all()
     serializer_class = serializers.CustomerOrderListSerializer
+    filter_backends = (dj_filters.DjangoFilterBackend,)
+    filterset_class = filters.OrderFilter
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -171,6 +170,7 @@ class CustomerOrderAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Re
             'vat': vat,
             'discount': discount,
             'total': total,
+            'shipping_charge': order.shipping_charge,
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
@@ -209,6 +209,17 @@ class CustomerAddressAPI(viewsets.ModelViewSet):
             return Response(
                 {'detail': [_("Address associated with an order.")]}, status=status.HTTP_400_BAD_REQUEST)
         return super().destroy(request, *args, **kwargs)
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Address.objects.filter(user=user)
+        return queryset
+
+
+class CustomerReasonTypeAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [AllowAny, ]
+    queryset = Reason.objects.filter(is_active=True)
+    serializer_class = serializers.CustomerReasonTypeSerializer
 
 
 class CustomerReasonAPI(viewsets.GenericViewSet, mixins.ListModelMixin):

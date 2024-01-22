@@ -147,13 +147,16 @@ class ProductVariant(BaseModel):
             return True
         return False
 
+    def get_variant_option_name(self):
+        return self.variant_option.name
+
 
 class ProductReview(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='product_review')
     rating = models.IntegerField()
     comment = models.TextField()
-    images = models.ManyToManyField('coreapp.Document')
+    images = models.ManyToManyField('coreapp.Document',related_name='images_review')
     order_item = models.ForeignKey('sales.OrderItem', on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):

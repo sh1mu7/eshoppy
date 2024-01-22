@@ -1,13 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext_lazy as _
+from django_filters import rest_framework as dj_filters
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import viewsets, mixins, status
-from django_filters import rest_framework as dj_filters
 
 from coreapp.permissions import IsCustomer
 from . import serializers
@@ -33,7 +32,7 @@ class CustomerCategoryAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins
 
 
 class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
-    permission_classes = [AllowAny, ]
+    permission_classes = [IsCustomer, ]
     queryset = Product.objects.filter(is_active=True, stock_status=constants.StockStatusChoices.IN_STOCK)
     serializer_class = serializers.CustomerProductListSerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
@@ -84,3 +83,10 @@ class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, m
     serializer_class = serializers.CustomerProductReviewSerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
     filterset_class = filters.ProductReviewFilter
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.CustomerProductReviewSerializer
+        elif self.action == 'retrieve':
+            return serializers.CustomerProductReviewDetailSerializer
+        return self.serializer_class

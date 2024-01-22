@@ -34,16 +34,19 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'silk',
+    # 'channels',
     'django.contrib.staticfiles',
     'coreapp.apps.CoreappConfig',
     'blog.apps.BlogConfig',
     'cart.apps.CartConfig',
+    'chat.apps.ChatConfig',
     'delivery.apps.DeliveryConfig',
     'inventory.apps.InventoryConfig',
     'notification.apps.NotificationConfig',
     'sales.apps.SalesConfig',
     'subscription.apps.SubscriptionConfig',
     'utility.apps.UtilityConfig',
+    'support.apps.SupportConfig',
 ]
 
 MIDDLEWARE = [

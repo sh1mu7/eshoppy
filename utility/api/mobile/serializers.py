@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import GlobalSettings, Page, Payment
+from ...models import GlobalSettings, Page
 
 
 class InfoSerializer(serializers.ModelSerializer):
@@ -8,7 +8,10 @@ class InfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GlobalSettings
-        fields = ('site_name', 'website_url', 'email', 'phone', 'address', 'logo_url')
+        fields = (
+            'site_name', 'website_url', 'logo', 'email', 'phone', 'address', 'latitude', 'longitude', 'short_desc',
+            'facebook', 'twitter', 'linkedin', 'instagram', 'youtube', 'logo_url'
+        )
 
 
 class PageListSerializer(serializers.ModelSerializer):

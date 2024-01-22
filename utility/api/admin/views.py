@@ -3,10 +3,9 @@ from rest_framework import viewsets, mixins, views, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
-from django_filters import rest_framework as dj_filters
+
 from . import serializers
-from .. import filters
-from ...models import GlobalSettings, Page, Currency, FAQ, Banner, SearchResult, Refund
+from ...models import GlobalSettings, Page, Currency, FAQ, Banner, SearchResult, Refund, EmailSubscription
 
 
 class GlobalSettingsAPI(views.APIView):
@@ -79,3 +78,9 @@ class AdminSearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
     permission_classes = [IsAdminUser, ]
     queryset = SearchResult.objects.all()
     serializer_class = serializers.AdminSearchResultSerializer
+
+
+class AdminEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin):
+    permission_classes = [AllowAny]
+    queryset = EmailSubscription.objects.all()
+    serializer_class = serializers.AdminEmailSubscriptionSerializer

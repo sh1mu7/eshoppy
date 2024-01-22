@@ -10,6 +10,8 @@ router.register(r"currency", views.AdminCurrencyAPI)
 router.register(r"banner", views.AdminBannerAPI)
 router.register(r"faq", views.AdminFAQAPI)
 router.register(r"search-result", views.AdminSearchResultAPI)
+router.register(r"email-subscription", views.AdminEmailSubscriptionAPI)
+
 
 urlpatterns = [
     path("global-settings/", views.GlobalSettingsAPI.as_view())

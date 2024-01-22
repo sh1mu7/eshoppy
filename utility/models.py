@@ -1,7 +1,9 @@
 import uuid
+
 from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
+
 import coreapp.roles
 from coreapp.base import BaseModel
 from utility import constants
@@ -15,8 +17,8 @@ class GlobalSettings(BaseModel):
     email = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
     address = models.CharField(max_length=150)
-    latitude = models.DecimalField(decimal_places=16, max_digits=20, default=0.00)
-    longitude = models.DecimalField(decimal_places=16, max_digits=20, default=0.00)
+    latitude = models.DecimalField(decimal_places=6, max_digits=20, default=0.00)
+    longitude = models.DecimalField(decimal_places=6, max_digits=20, default=0.00)
     short_desc = models.TextField(max_length=500)
     facebook = models.CharField(max_length=100, null=True, blank=True)
     twitter = models.CharField(max_length=100, null=True, blank=True)
@@ -189,3 +191,11 @@ class SearchResult(BaseModel):
 
     def __str__(self):
         return self.search_text
+
+
+class EmailSubscription(BaseModel):
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.email

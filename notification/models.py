@@ -24,3 +24,6 @@ class PersonalNotification(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def get_user_name(self):
+        return self.user.get_full_name

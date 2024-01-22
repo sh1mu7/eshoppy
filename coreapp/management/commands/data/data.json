@@ -1,0 +1,82 @@
+[
+    {
+      "parent": null,
+      "name": "Electronics",
+      "image": 1,
+      "slug": "electronics",
+      "product_count": 500,
+      "is_active": true
+    },
+    {
+      "parent": null,
+      "name": "Clothing",
+      "image": 1,
+      "slug": "clothing",
+      "product_count": 300,
+      "is_active": true
+    },
+    {
+      "parent": 1,
+      "name": "Smartphones",
+      "image": 1,
+      "slug": "smartphones",
+      "product_count": 200,
+      "is_active": true
+    },
+    {
+      "parent": 1,
+      "name": "Laptops",
+      "image": 1,
+      "slug": "laptops",
+      "product_count": 150,
+      "is_active": true
+    },
+    {
+      "parent": 2,
+      "name": "Men's Clothing",
+      "image": 1,
+      "slug": "mens-clothing",
+      "product_count": 180,
+      "is_active": true
+    },
+    {
+      "parent": 2,
+      "name": "Women's Clothing",
+      "image": 1,
+      "slug": "womens-clothing",
+      "product_count": 120,
+      "is_active": true
+    },
+    {
+      "parent": 3,
+      "name": "Apple iPhones",
+      "image": 1,
+      "slug": "apple-iphones",
+      "product_count": 100,
+      "is_active": true
+    },
+    {
+      "parent": 3,
+      "name": "Samsung Galaxy",
+      "image": 1,
+      "slug": "samsung-galaxy",
+      "product_count": 80,
+      "is_active": true
+    },
+    {
+      "parent": 4,
+      "name": "T-Shirts",
+      "image": 1,
+      "slug": "t-shirts",
+      "product_count": 90,
+      "is_active": true
+    },
+    {
+      "parent": 5,
+      "name": "Dresses",
+      "image": 1,
+      "slug": "dresses",
+      "product_count": 60,
+      "is_active": true
+    }
+  ]

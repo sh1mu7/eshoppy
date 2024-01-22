@@ -5,11 +5,12 @@ from rest_framework import viewsets, status, views, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
 from coreapp.permissions import IsCustomer
+from coreapp.utils.auth_utils import get_client_info
 from . import serializers
 from ... import constants
-from ...models import GlobalSettings, Page, Currency, Banner, FAQ, SearchResult, WalletRecharge
-from coreapp.utils.auth_utils import get_client_info
+from ...models import GlobalSettings, Page, Currency, Banner, FAQ, SearchResult, EmailSubscription
 
 
 class InfoAPI(views.APIView):
@@ -82,3 +83,9 @@ class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
     def perform_create(self, serializer):
         ip, user_agent = get_client_info(self.request)
         serializer.save(user_agent=user_agent, ip_address=ip, user=self.request.user)
+
+
+class UserEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
+    permission_classes = [AllowAny]
+    queryset = EmailSubscription.objects.all()
+    serializer_class = serializers.UserEmailSubscriptionSerializer

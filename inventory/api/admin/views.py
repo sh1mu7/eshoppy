@@ -50,6 +50,8 @@ class AdminProductAPI(viewsets.ModelViewSet):
             return serializers.AdminProductDetailSerializer
         elif self.action == 'update':
             return serializers.AdminProductUpdateSerializer
+        elif self.action == 'partial_update':
+            return serializers.AdminProductUpdateSerializer
         return self.serializer_class
 
 
@@ -76,7 +78,3 @@ class AdminProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixi
     serializer_class = serializers.AdminProductReviewSerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
     filterset_class = filters.ProductReviewFilter
-
-
-
-

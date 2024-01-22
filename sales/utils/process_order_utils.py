@@ -1,21 +1,15 @@
-from datetime import timedelta, datetime
+from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.translation import gettext_lazy as _
 
 from cart.models import Cart
 from coreapp.constants import MembershipAndPackageType
-from coreapp.utils.auth_utils import get_client_info
+from coreapp.models import Address
 from delivery.utils.distance_utils import haversine, nearest_delivery_charge
-from inventory.models import ProductVariant, Product
-from sales import constants
-from sales.models import OrderItem, Coupon, OrderEvent
+from inventory.models import ProductVariant
+from sales.models import OrderItem, Coupon
 from sales.utils import coupon_utils
-from subscription.models import SubscriptionHistory
-from utility.models import Payment, GlobalSettings
-from utility import constants as payment_constants
+from utility.models import GlobalSettings
 
 
 class ProductOutOfStockError(Exception):
@@ -31,6 +25,7 @@ class CouponNotFoundError(Exception):
 
 
 def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id, coupon_code):
+    print(customer, subtotal, vat_amount, order, cart_items_id, coupon_code)
     discount = 0
     for cart_item_id in cart_items_id:
         try:
@@ -78,10 +73,11 @@ def adjust_estd_delivery_time(order):
         return (now + relativedelta(days=7)).date()
 
 
-def shipping_charge_calculate(customer_latitude, customer_longitude):
+def shipping_charge_calculate(order):
+    address = Address.objects.get(user_id=order.customer.id, is_default=True)
     global_setting = GlobalSettings.objects.first()
     store_latitude = global_setting.latitude
     store_longitude = global_setting.longitude
-    distance = haversine(customer_latitude, customer_longitude, store_latitude, store_longitude)
+    distance = haversine(address.latitude, address.longitude, store_latitude, store_longitude)
     shipping_charge = nearest_delivery_charge(round(distance, 2))
     return shipping_charge

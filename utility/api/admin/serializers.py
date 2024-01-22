@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult, Refund
+from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult, Refund, EmailSubscription
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):
@@ -65,3 +65,9 @@ class RefundListAdminSerializer(serializers.ModelSerializer):
             'id', 'order', 'order_id', 'payment', 'payment_id', 'customer_name', 'customer_phone',
             'refundable_amount', 'is_refunded', 'created_at'
         )
+
+
+class AdminEmailSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailSubscription
+        fields = ('email', 'is_active')

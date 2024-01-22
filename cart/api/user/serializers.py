@@ -1,10 +1,10 @@
-from rest_framework import serializers, status
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
 
-from sales.models import Coupon, Order
-from ...utils import validate
-from inventory.models import ProductVariant, Product
+from inventory.models import ProductVariant
+from sales.models import Coupon
 from ...models import Wishlist, Cart
+from ...utils import validate
 
 
 class UserWishlistListSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class UserWishlistListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wishlist
-        fields = ('id', 'product_name', 'product_price', 'product_thumbnail', 'product_variants')
+        fields = ('id', 'product', 'product_name', 'product_price', 'product_thumbnail', 'product_variants')
 
 
 class UserWishlistCreateSerializer(serializers.ModelSerializer):
@@ -44,12 +44,15 @@ class UserCartListSerializer(serializers.ModelSerializer):
     product_variant = serializers.PrimaryKeyRelatedField(read_only=True)
     quantity = serializers.IntegerField()
     product_price = serializers.SerializerMethodField(method_name='get_product_price')
+    variant_name = serializers.CharField(source='get_product_variant_name', read_only=True)
+    variant_option_name = serializers.CharField(source='get_product_variant_option_name', read_only=True)
 
     class Meta:
         model = Cart
         fields = (
-            'id', 'product', 'product_name', 'product_thumbnail', 'product_price', 'variant', 'product_variant',
-            'quantity')
+            'id', 'product', 'product_name', 'product_thumbnail', 'product_price', 'variant', 'variant_name',
+            'product_variant', 'variant_option_name', 'quantity'
+        )
 
     def get_product_price(self, instance):
         # TODO : This method needs to be optimized otherwise it will trigger N+1 query
@@ -67,7 +70,7 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ('id', 'user', 'product', 'variant', 'quantity', 'product_variant')
+        fields = ('id', 'user', 'product', 'quantity', 'product_variant')
         read_only_fields = ('user',)
 
     def validate(self, attrs):
@@ -115,5 +118,3 @@ class CartPriceCalculationSerializer(serializers.Serializer):
 
 class OrderPriceCalculationSerializer(serializers.Serializer):
     order_id = serializers.CharField(required=True, allow_null=False, )
-
-

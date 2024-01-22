@@ -9,6 +9,7 @@ router.register(r"currency", views.CurrencyReadOnlyAPI)
 router.register(r"banner", views.BannerReadOnlyAPI)
 router.register(r"faq", views.FAQReadOnlyAPI)
 router.register(r"search-result", views.SearchResultAPI)
+router.register(r"email-subscription", views.UserEmailSubscriptionAPI)
 
 urlpatterns = [
     path("info/", views.InfoAPI.as_view()),

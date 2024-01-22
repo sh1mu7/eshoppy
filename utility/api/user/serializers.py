@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import GlobalSettings, Page, Payment, Currency, Banner, FAQ, SearchResult, WalletRecharge
+from ...models import GlobalSettings, Page, Currency, Banner, FAQ, SearchResult, EmailSubscription
 
 
 class UserGlobalSettingsSerializer(serializers.ModelSerializer):
@@ -59,3 +59,9 @@ class UserSearchResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = SearchResult
         fields = ('id', 'search_text',)
+
+
+class UserEmailSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailSubscription
+        fields = ('email',)

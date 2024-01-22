@@ -22,6 +22,7 @@ class Country(BaseModel):
 
 
 class Address(BaseModel):
+    address_type = models.SmallIntegerField(choices=constants.AddressType.choices)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_address')
     country = models.ForeignKey('coreapp.Country', on_delete=models.CASCADE)
     flat = models.CharField(max_length=100)
@@ -29,7 +30,7 @@ class Address(BaseModel):
     address = models.TextField()
     zip_code = models.CharField(max_length=10)
     latitude = models.DecimalField(max_digits=20, decimal_places=6, default=0.00)
-    longitude = models.DecimalField(max_digits=20, decimal_places=16, default=0.00)
+    longitude = models.DecimalField(max_digits=20, decimal_places=6, default=0.00)
     is_default = models.BooleanField(default=False)
 
     def make_default(self):

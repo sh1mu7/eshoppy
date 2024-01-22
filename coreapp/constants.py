@@ -21,3 +21,9 @@ class MembershipAndPackageType(models.IntegerChoices):
     BASIC = 0, _('Basic')
     PREMIUM = 1, _('Premium')
     VIP = 2, _('VIP')
+
+
+class AddressType(models.IntegerChoices):
+    HOME = 0, _('Home')
+    OFFICE = 1, _('Office')
+    OTHER=2, _('Other')

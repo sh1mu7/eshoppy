@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework import routers
 
 from . import views
@@ -10,6 +10,7 @@ urlpatterns = [
     path('signup/', views.SignupAPI.as_view(), name='signup'),
     path('login/', views.LoginView.as_view(), name='login'),
     path('delete/', views.DeleteAccountAPI.as_view(), name='delete-account'),
+    path('user/', include('coreapp.api.admin.urls')),
     path('profile/', views.ProfileAPI.as_view(), name='profile'),
     path('verification/resend/', views.ResendVerificationAPI.as_view(), name='resend-verification'),
     path('verification/check/', views.OTPCheckAPI.as_view(), name='otp-check'),
