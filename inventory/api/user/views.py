@@ -32,7 +32,7 @@ class CustomerCategoryAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins
 
 
 class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
-    permission_classes = [IsCustomer, ]
+    permission_classes = [AllowAny, ]
     queryset = Product.objects.filter(is_active=True, stock_status=constants.StockStatusChoices.IN_STOCK)
     serializer_class = serializers.CustomerProductListSerializer
     filter_backends = (dj_filters.DjangoFilterBackend,)
@@ -42,6 +42,15 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         if self.action == 'retrieve':
             return serializers.CustomerProductDetailSerializer
         return self.serializer_class
+
+    @action(detail=False, methods=['get'], url_path='new_arrival')
+    def get_new_arrival(self, request):
+        try:
+            related_products = Product.objects.order_by('-created_at')[:14]
+            serializer = serializers.NewArrivalProductSerializer(related_products, many=True)
+            return Response(serializer.data)
+        except Product.DoesNotExist:
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(request=None)
     @action(detail=True, methods=['get'], url_path='related_product')

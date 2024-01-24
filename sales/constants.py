@@ -31,9 +31,16 @@ class OrderEventStatus(models.IntegerChoices):
     REQUEST_SENT = 1, _('Request Sent')
     DELIVERYMAN_ASSIGNED = 2, _('Deliveryman Assigned')
     DELIVERED = 3, _('Delivered')
+    RETURNED = 4, _('Returned')
 
 
 class OrderCancelStatus(models.IntegerChoices):
+    PENDING = 0, _('Pending')
+    ACCEPT = 1, _('Accept')
+    REJECT = 2, _('Reject')
+
+
+class OrderReturnStatus(models.IntegerChoices):
     PENDING = 0, _('Pending')
     ACCEPT = 1, _('Accept')
     REJECT = 2, _('Reject')

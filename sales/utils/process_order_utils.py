@@ -7,7 +7,6 @@ from coreapp.constants import MembershipAndPackageType
 from coreapp.models import Address
 from delivery.utils.distance_utils import haversine, nearest_delivery_charge
 from inventory.models import ProductVariant
-from sales.models import OrderItem, Coupon
 from sales.utils import coupon_utils
 from utility.models import GlobalSettings
 
@@ -25,7 +24,7 @@ class CouponNotFoundError(Exception):
 
 
 def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id, coupon_code):
-    print(customer, subtotal, vat_amount, order, cart_items_id, coupon_code)
+    from sales.models import OrderItem, Coupon
     discount = 0
     for cart_item_id in cart_items_id:
         try:
@@ -55,7 +54,7 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
         try:
             coupon = Coupon.objects.get(coupon_code=coupon_code)
             order.coupon_id = coupon.id
-            discount += coupon_utils.discount_after_coupon(subtotal, coupon)
+            discount += coupon_utils.discount_after_coupon(subtotal, coupon, order.customer)
         except Coupon.DoesNotExist:
             raise CouponNotFoundError('Coupon not found.')
     return subtotal, vat_amount, discount
@@ -73,8 +72,9 @@ def adjust_estd_delivery_time(order):
         return (now + relativedelta(days=7)).date()
 
 
-def shipping_charge_calculate(order):
-    address = Address.objects.get(user_id=order.customer.id, is_default=True)
+def shipping_charge_calculate(user):
+    address = Address.objects.get(user_id=user.id, is_default=True)
+    print(address.latitude)
     global_setting = GlobalSettings.objects.first()
     store_latitude = global_setting.latitude
     store_longitude = global_setting.longitude

@@ -2,6 +2,8 @@ from datetime import datetime
 
 from django.contrib.auth.models import BaseUserManager
 
+from coreapp import roles
+
 
 class MyUserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
@@ -21,7 +23,7 @@ class MyUserManager(BaseUserManager):
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_verified', True)
         extra_fields.setdefault('is_approved', True)
-
+        extra_fields.setdefault('role', roles.UserRoles.ADMIN)
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:

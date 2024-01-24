@@ -1,11 +1,9 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from coreapp.api.serializers import AddressSerializer
-from ...models import Reason, Coupon, OrderItem, Order, OrderEvent
-from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _
 from coreapp import roles
 from coreapp.models import User
+from ...models import Reason, Coupon, OrderItem, Order, OrderEvent
 
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
@@ -34,7 +32,7 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
     customer_mobile = serializers.CharField(source='get_customer_mobile')
     customer_email = serializers.CharField(source='get_customer_email')
     order_items = AdminOrderItemSerializer(many=True, read_only=True, source='get_order_item')
-    order_event_status = serializers.CharField(source='get_order_event_status')
+    order_event_status = serializers.CharField(source='get_order_event_status', read_only=True)
 
     class Meta:
         model = Order

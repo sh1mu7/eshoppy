@@ -29,8 +29,8 @@ class Address(BaseModel):
     road = models.CharField(max_length=255)
     address = models.TextField()
     zip_code = models.CharField(max_length=10)
-    latitude = models.DecimalField(max_digits=20, decimal_places=6, default=0.00)
-    longitude = models.DecimalField(max_digits=20, decimal_places=6, default=0.00)
+    latitude = models.DecimalField(max_digits=20, decimal_places=14, default=0.00)
+    longitude = models.DecimalField(max_digits=20, decimal_places=14, default=0.00)
     is_default = models.BooleanField(default=False)
 
     def make_default(self):

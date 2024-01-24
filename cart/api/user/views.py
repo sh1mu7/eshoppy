@@ -1,14 +1,14 @@
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.utils.translation import gettext_lazy as _
 
+from coreapp.permissions import IsCustomer
 from sales.models import Coupon
 from sales.utils import coupon_utils
 from sales.utils.process_order_utils import CouponNotFoundError
 from . import serializers
-from coreapp.permissions import IsCustomer
 from ...models import Wishlist, Cart
 
 
@@ -55,6 +55,8 @@ class UserCartAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
     @extend_schema(request=serializers.CartPriceCalculationSerializer)
     @action(detail=False, methods=['post'], url_path='calculate_price')
     def cart_price_calculation(self, request):
+
+        user = self.request.user
         serializer = serializers.CartPriceCalculationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         cart_items_id = serializer.validated_data['cart_list']
@@ -70,16 +72,19 @@ class UserCartAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
             for item in cart_items:
                 if item.product_variant:
                     subtotal += (item.product.price + item.product_variant.additional_price) * item.quantity
+                    vat += item.product.get_vat_amount / 100 * (
+                            item.product.price + item.product_variant.additional_price) * item.quantity
                 else:
                     subtotal += item.product.price * item.quantity
-                vat += item.product.get_vat_amount * item.quantity
+                    vat += item.product.get_vat_amount / 100 * item.product.price * item.quantity
+                total = subtotal + vat
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                discount += coupon_utils.discount_after_coupon(subtotal, coupon)
+                discount += coupon_utils.discount_after_coupon(subtotal, coupon, user)
+
             except Coupon.DoesNotExist:
                 raise CouponNotFoundError('Coupon not found.')
-        total = subtotal + vat - discount
 
         response_data = {
             'subtotal': subtotal,

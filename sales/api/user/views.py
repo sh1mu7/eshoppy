@@ -14,7 +14,7 @@ from coreapp.models import Address
 from coreapp.permissions import IsCustomer
 from coreapp.utils.auth_utils import get_client_info
 from delivery.models import OrderDelivery
-from sales.models import Reason, Coupon, Order, OrderEvent
+from sales.models import Reason, Coupon, Order, OrderEvent, OrderReturn
 from utility import constants as payment_constants
 from utility.models import Payment
 from utility.utils.payment_utils import generate_bill_url
@@ -54,7 +54,7 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     customer=customer, customer_email=customer.email, customer_phone=customer.mobile,
                     customer_name=customer.get_full_name, customer_latitude=address.latitude,
                     customer_longitude=address.longitude, shipping_address=address, payment_method=payment_method)
-                shipping_charge = shipping_charge_calculate(order)
+                shipping_charge = shipping_charge_calculate(order.customer)
                 subtotal, vat_amount, discount = process_cart_and_coupon(customer, subtotal, vat_amount, order,
                                                                          cart_items_id, coupon_code)
 
@@ -67,13 +67,14 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 order.discount = discount
                 order.total = total
                 order.estd_delivery_time = estimated_delivery_time
-                order.order_stage = constants.OrderStage.REQUEST_SENT
+                order.order_stage = constants.OrderStage.ORDER_PLACED
                 order.save()
                 order.refresh_from_db()
-                # TODO: Need to remove the comment
                 cart_items.delete()
                 OrderEvent.objects.create(order=order, event_status=constants.OrderEventStatus.ORDER_PLACED,
                                           note='Order has been placed successfully').save()
+                customer.reward_points += order.reward_points
+                customer.save()
                 ip, user_agent = get_client_info(request)
                 payment = Payment.objects.create(
                     amount=total, ip_address=ip, order=order, status=payment_constants.PaymentStatus.PENDING,
@@ -86,7 +87,6 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                         return Response({'detail': 'Bill Url.'}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     bill_url = None
-                # TODO: Need to setup the payment configuration
                 data = {
                     'detail': 'Order has been placed successfully.',
                     'bill_url': bill_url,
@@ -236,4 +236,15 @@ class CustomerCouponAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
     def get_queryset(self):
         user = self.request.user.id
         queryset = Coupon.objects.filter(customers__in=[user])
+        return queryset
+
+
+class CustomerOrderReturnAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
+    permission_classes = [IsCustomer, ]
+    queryset = OrderReturn.objects.all()
+    serializer_class = serializers.CustomerOrderReturnSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = OrderReturn.objects.filter(customer=user)
         return queryset

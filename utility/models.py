@@ -25,7 +25,6 @@ class GlobalSettings(BaseModel):
     linkedin = models.CharField(max_length=100, null=True, blank=True)
     instagram = models.CharField(max_length=100, null=True, blank=True)
     youtube = models.CharField(max_length=100, null=True, blank=True)
-    shipping_fee = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     vat_percentage = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     delivery_commission = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     min_withdraw_amount = models.DecimalField(default=0, decimal_places=2, max_digits=10)
@@ -186,8 +185,8 @@ class FAQ(BaseModel):
 class SearchResult(BaseModel):
     search_text = models.CharField(max_length=200)
     ip_address = models.CharField(max_length=100)
-    user_agent = models.CharField(max_length=100)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_agent = models.CharField(max_length=300)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.search_text

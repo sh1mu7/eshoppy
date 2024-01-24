@@ -1,13 +1,16 @@
 import decimal
-import string
 import random
+import string
+
 from coreapp.utils.twilio_utils import get_system_settings
 from sales import constants
+from sales.utils.process_order_utils import shipping_charge_calculate
 
 settings_object = get_system_settings()
 
 
-def discount_after_coupon(subtotal, coupon):
+def discount_after_coupon(subtotal, coupon, user):
+    print(subtotal, coupon)
     if coupon.coupon_type == constants.CouponType.FIRST_ORDER:
         if coupon.discount_type == constants.DiscountType.AMOUNT:
             if subtotal > coupon.minimum_purchase:
@@ -29,7 +32,9 @@ def discount_after_coupon(subtotal, coupon):
                 else:
                     return discount_amount
     else:
-        return settings_object.shipping_fee
+        shipping_charge = shipping_charge_calculate(user)
+        print(shipping_charge)
+        return shipping_charge
 
 
 def generate_coupon_code():

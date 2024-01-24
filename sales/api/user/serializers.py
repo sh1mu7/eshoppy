@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -6,7 +7,7 @@ from cart.models import Cart
 from coreapp.models import Address
 from delivery.models import OrderDelivery
 from ..admin.serializers import AdminOrderItemSerializer
-from ...models import Reason, Coupon, Order, OrderEvent
+from ...models import Reason, Coupon, Order, OrderEvent, OrderReturn
 
 
 class UserCheckOutSerializer(serializers.Serializer):
@@ -119,3 +120,25 @@ class CustomerReasonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reason
         fields = ('reason_type', 'reason_name')
+
+
+class CustomerOrderReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderReturn
+        fields = ('order', 'reason', 'image', 'refund_method', 'reason_detail')
+
+    def validate(self, attrs):
+        current_time = timezone.now()
+        order_created_at = attrs['order'].created_at
+        time_difference = current_time - order_created_at
+        if time_difference.days > 7:
+            raise serializers.ValidationError("Order must be created within the last 7 days to initiate a return.")
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        customer_mobile = user.mobile
+        image = validated_data.pop('image')
+        order_return = OrderReturn.objects.create(**validated_data, customer_mobile=customer_mobile, customer=user)
+        order_return.image.set(image)
+        return order_return

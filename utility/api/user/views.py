@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from coreapp.permissions import IsCustomer
 from coreapp.utils.auth_utils import get_client_info
 from . import serializers
 from ... import constants
@@ -72,7 +71,7 @@ class FAQReadOnlyAPI(viewsets.ReadOnlyModelViewSet):
 
 
 class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
-    permission_classes = [IsCustomer, ]
+    permission_classes = [AllowAny, ]
     queryset = SearchResult.objects.all()
     serializer_class = serializers.UserSearchResultSerializer
 
@@ -82,7 +81,10 @@ class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
 
     def perform_create(self, serializer):
         ip, user_agent = get_client_info(self.request)
+        if self.request.user == 'AnonymousUser':
+            serializer.save(user_agent=user_agent, ip_address=ip, user=None)
         serializer.save(user_agent=user_agent, ip_address=ip, user=self.request.user)
+
 
 
 class UserEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):

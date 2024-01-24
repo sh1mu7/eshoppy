@@ -1,7 +1,10 @@
 from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum
 from django.utils.functional import cached_property
+
 from coreapp.base import BaseModel
 from sales import constants
 from sales.utils import coupon_utils
@@ -153,6 +156,11 @@ class OrderItem(BaseModel):
         self.vat_amount = self.get_vat_amount
         self.subtotal = self.get_subtotal
         self.total = self.get_total
+        order = self.order
+        total_reward_points = OrderItem.objects.filter(order=order).aggregate(Sum('product__reward_points'))[
+            'product__reward_points__sum']
+        order.reward_points = total_reward_points if total_reward_points else 0
+        order.save()
         super(OrderItem, self).save(*args, **kwargs)
 
 
@@ -164,3 +172,20 @@ class OrderEvent(BaseModel):
 
     def __str__(self):
         return f'Order: {self.order.invoice_no} Order Status:{self.event_status.__str__()}'
+
+
+class OrderReturn(BaseModel):
+    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, related_name='order_return')
+    customer = models.ForeignKey('coreapp.User', on_delete=models.CASCADE)
+    customer_mobile = models.CharField(max_length=15)
+    reason = models.ForeignKey('sales.Reason', on_delete=models.CASCADE)
+    image = models.ManyToManyField('coreapp.Document')
+    refund_method = models.SmallIntegerField(choices=PaymentMethod.choices)
+    reason_detail = models.TextField()
+    return_status = models.SmallIntegerField(choices=constants.OrderReturnStatus.choices,
+                                             default=constants.OrderReturnStatus.PENDING)
+    event_status = models.SmallIntegerField(choices=constants.OrderEventStatus.choices,
+                                            default=constants.OrderEventStatus.REQUEST_SENT)
+
+    def __str__(self):
+        return f'{self.order} and returned by {self.return_status}, customer mobile {self.customer_mobile}'

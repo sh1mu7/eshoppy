@@ -1,4 +1,5 @@
 from django_filters import rest_framework as dj_filters
+
 from inventory.models import Category, Brand, Product, ProductReview
 
 
@@ -70,7 +71,7 @@ class CustomerProductFilter(dj_filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ('name', 'category', 'brand')
+        fields = ('name', 'category', 'brand', 'has_promotion')
 
     def filter_new(self, queryset, name, value):
         return queryset.order_by('-created_at')

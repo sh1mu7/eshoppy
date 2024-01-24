@@ -10,8 +10,7 @@ class UserGlobalSettingsSerializer(serializers.ModelSerializer):
         model = GlobalSettings
         fields = (
             'site_name', 'website_url', 'logo', 'email', 'phone', 'address', 'latitude', 'longitude', 'short_desc',
-            'facebook', 'twitter', 'linkedin', 'instagram', 'youtube', 'vat_percentage', 'min_withdraw_amount',
-            'max_withdraw_amount', 'logo_url'
+            'facebook', 'twitter', 'linkedin', 'instagram', 'youtube', 'logo_url'
         )
 
 
@@ -46,7 +45,7 @@ class UserBannerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Banner
-        fields = ('name', 'image_url', 'expiry_date', 'position')
+        fields = ('id', 'name', 'image_url', 'expiry_date', 'position')
 
 
 class UserFAQSerializer(serializers.ModelSerializer):

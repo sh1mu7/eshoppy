@@ -86,7 +86,21 @@ class CustomerProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-        'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant','is_featured')
+            'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant',
+            'is_featured'
+        )
+
+
+class NewArrivalProductSerializer(serializers.ModelSerializer):
+    thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
+    product_name = serializers.CharField(source='get_product_name', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant',
+            'is_featured'
+        )
 
 
 class CustomerProductDetailSerializer(serializers.ModelSerializer):
