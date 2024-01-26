@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from coreapp.permissions import IsCustomer
+from sales.models import OrderItem
 from . import serializers
 from .. import filters
 from ... import constants
@@ -52,37 +53,39 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         except Product.DoesNotExist:
             return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(request=None)
-    @action(detail=True, methods=['get'], url_path='related_product')
-    def get_related_product(self, request, pk=None):
-        try:
-            product = self.get_object()
-            related_products = Product.objects.filter(
-                Q(category=product.category) | Q(name__icontains=product.name)).exclude(id=product.id)
-            serializer = serializers.CustomerProductListSerializer(related_products, many=True)
-            return Response(serializer.data)
-        except Product.DoesNotExist:
-            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(request=None)
-    @action(detail=True, methods=['get'], url_path='calculate_price/(?P<variant_id>[^/.]+)')
-    def calculate_price(self, request, pk=None, variant_id=None):
-        try:
-            product = self.get_object()
-        except ObjectDoesNotExist:
-            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            product_variant = ProductVariant.objects.get(id=variant_id, product=product)
-            calculated_price = product.price + product_variant.additional_price
-            data = {
-                'calculated_price': calculated_price,
-                'variant_id': product_variant.id,
-                'vat_amount': product.vat,
-                'reward_amount': product.reward_points
-            }
-            return Response(data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response({'detail': _("Invalid product variant selection")}, status=status.HTTP_400_BAD_REQUEST)
+@extend_schema(request=None)
+@action(detail=True, methods=['get'], url_path='related_product')
+def get_related_product(self, request, pk=None):
+    try:
+        product = self.get_object()
+        related_products = Product.objects.filter(
+            Q(category=product.category) | Q(name__icontains=product.name)).exclude(id=product.id)
+        serializer = serializers.CustomerProductListSerializer(related_products, many=True)
+        return Response(serializer.data)
+    except Product.DoesNotExist:
+        return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(request=None)
+@action(detail=True, methods=['get'], url_path='calculate_price/(?P<variant_id>[^/.]+)')
+def calculate_price(self, request, pk=None, variant_id=None):
+    try:
+        product = self.get_object()
+    except ObjectDoesNotExist:
+        return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        product_variant = ProductVariant.objects.get(id=variant_id, product=product)
+        calculated_price = product.price + product_variant.additional_price
+        data = {
+            'calculated_price': calculated_price,
+            'variant_id': product_variant.id,
+            'vat_amount': product.vat,
+            'reward_amount': product.reward_points
+        }
+        return Response(data, status=status.HTTP_200_OK)
+    except ObjectDoesNotExist:
+        return Response({'detail': _("Invalid product variant selection")}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -99,3 +102,11 @@ class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, m
         elif self.action == 'retrieve':
             return serializers.CustomerProductReviewDetailSerializer
         return self.serializer_class
+
+
+class TopSellingProduct(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [AllowAny, ]
+    queryset = OrderItem.objects.all()
+    serializer_class = serializers.TopSellingSerializer
+    filter_backends = (dj_filters.DjangoFilterBackend,)
+    filterset_class = filters.TopSelling

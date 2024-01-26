@@ -151,6 +151,19 @@ class OrderItem(BaseModel):
         total = self.subtotal + self.get_vat_amount
         return total
 
+    @cached_property
+    def get_avg_rating(self):
+        return self.product.average_rating
+
+    @cached_property
+    def get_total_review(self):
+        return self.product.total_review
+
+    @cached_property
+    def get_product_category(self):
+        category = self.product.category.id
+        return category
+
     def save(self, *args, **kwargs):
         self.price = self.get_product_price
         self.vat_amount = self.get_vat_amount

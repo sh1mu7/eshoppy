@@ -74,8 +74,7 @@ class CustomerProductReviewDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductReview
         fields = (
-            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment',
-            'images'
+            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images'
         )
 
 
@@ -101,6 +100,20 @@ class NewArrivalProductSerializer(serializers.ModelSerializer):
             'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant',
             'is_featured'
         )
+
+
+class TopSellingSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='get_product_name', read_only=True)
+    product_image = serializers.CharField(source='get_product_image_url', read_only=True)
+    product_price = serializers.CharField(source='get_product_price', read_only=True)
+    total_review = serializers.CharField(source='get_total_review', read_only=True)
+    avg_rating = serializers.CharField(source='get_avg_rating', read_only=True)
+    category = serializers.CharField(source='get_product_category', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ('id', 'product', 'product_name', 'product_image', 'product_price', 'avg_rating', 'total_review',
+                  "category")
 
 
 class CustomerProductDetailSerializer(serializers.ModelSerializer):

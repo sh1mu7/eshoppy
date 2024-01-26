@@ -1,6 +1,7 @@
 from django_filters import rest_framework as dj_filters
 
 from inventory.models import Category, Brand, Product, ProductReview
+from sales.models import OrderItem
 
 
 # Done : Is active filter needed for everything
@@ -51,6 +52,14 @@ class ProductReviewFilter(dj_filters.FilterSet):
     class Meta:
         model = ProductReview
         fields = ('product', 'rating')
+
+
+class TopSelling(dj_filters.FilterSet):
+    product_category = dj_filters.CharFilter(field_name='product__category', lookup_expr='exact')
+
+    class Meta:
+        model = OrderItem
+        fields = ['quantity', 'product_category']
 
 
 class CustomerProductFilter(dj_filters.FilterSet):

@@ -156,7 +156,7 @@ class ProductReview(BaseModel):
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='product_review')
     rating = models.IntegerField()
     comment = models.TextField()
-    images = models.ManyToManyField('coreapp.Document',related_name='images_review')
+    images = models.ManyToManyField('coreapp.Document', related_name='images_review')
     order_item = models.ForeignKey('sales.OrderItem', on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):

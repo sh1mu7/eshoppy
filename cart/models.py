@@ -19,8 +19,12 @@ class Wishlist(BaseModel):
 
     @cached_property
     def get_product_variant(self):
-        print(self.product.product_variants)
-        return self.product.product_variants
+        if self.product.product_variants.exists():
+            variants = self.product.product_variants.all()
+            variant_names = {variant.id for variant in variants}
+            return variant_names
+        else:
+            return ["No Variant"]
 
     @cached_property
     def get_product_thumbnail(self):

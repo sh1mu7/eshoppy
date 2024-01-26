@@ -7,11 +7,16 @@ from ...models import Wishlist, Cart
 from ...utils import validate
 
 
+class SetField(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+
+
 class UserWishlistListSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='get_product_name', read_only=True)
     product_thumbnail = serializers.CharField(source='get_product_thumbnail', read_only=True)
     product_price = serializers.CharField(source='get_product_price', read_only=True)
-    product_variants = serializers.CharField(source='get_product_variant', read_only=True)
+    product_variants = SetField(source='get_product_variant', read_only=True)
 
     class Meta:
         model = Wishlist
@@ -26,7 +31,7 @@ class UserWishlistCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         product = attrs.get('product')
-        wishlist = Wishlist.objects.filter(product=product)
+        wishlist = Wishlist.objects.filter(product=product, user=self.context['request'].user)
         if wishlist.exists():
             raise serializers.ValidationError({"product": [_('This product is already in your wishlist'), ]})
         return attrs
