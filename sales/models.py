@@ -164,6 +164,18 @@ class OrderItem(BaseModel):
         category = self.product.category.id
         return category
 
+    @cached_property
+    def get_is_featured(self):
+        if self.product.is_featured:
+            return True
+        return False
+
+    @cached_property
+    def get_has_variant(self):
+        if self.product.has_variant:
+            return True
+        return False
+
     def save(self, *args, **kwargs):
         self.price = self.get_product_price
         self.vat_amount = self.get_vat_amount

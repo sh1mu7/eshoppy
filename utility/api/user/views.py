@@ -76,15 +76,21 @@ class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
     serializer_class = serializers.UserSearchResultSerializer
 
     def get_queryset(self):
-        queryset = SearchResult.objects.filter(user=self.request.user).order_by('-created_at')
-        return queryset
+        ip, user_agent = get_client_info(self.request)
+        user = self.request.user
+        if user.is_anonymous:
+            queryset = SearchResult.objects.filter(ip_address=ip).order_by('-created_at')
+            print(queryset)
+            return queryset
+        else:
+            queryset = SearchResult.objects.filter(user=self.request.user).order_by('-created_at')
+            return queryset
 
     def perform_create(self, serializer):
         ip, user_agent = get_client_info(self.request)
         if self.request.user == 'AnonymousUser':
             serializer.save(user_agent=user_agent, ip_address=ip, user=None)
         serializer.save(user_agent=user_agent, ip_address=ip, user=self.request.user)
-
 
 
 class UserEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):

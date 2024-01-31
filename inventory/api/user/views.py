@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as dj_filters
 from drf_spectacular.utils import extend_schema
@@ -47,45 +47,48 @@ class CustomerProductAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
     @action(detail=False, methods=['get'], url_path='new_arrival')
     def get_new_arrival(self, request):
         try:
-            related_products = Product.objects.order_by('-created_at')[:14]
+            related_products = Product.objects.filter(is_active=True,
+                                                      stock_status=constants.StockStatusChoices.IN_STOCK).order_by(
+                '-created_at')[:14]
             serializer = serializers.NewArrivalProductSerializer(related_products, many=True)
             return Response(serializer.data)
         except Product.DoesNotExist:
             return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(request=None)
+    @action(detail=True, methods=['get'], url_path='related_product')
+    def get_related_product(self, request, pk=None):
+        try:
+            product = self.get_object()
+            related_products = Product.objects.filter(
+                Q(category=product.category) | Q(name__icontains=product.name) &
+                Q(is_active=True, stock_status=constants.StockStatusChoices.IN_STOCK)
+            ).exclude(id=product.id)
+            serializer = serializers.CustomerProductListSerializer(related_products, many=True)
+            return Response(serializer.data)
+        except Product.DoesNotExist:
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(request=None)
-@action(detail=True, methods=['get'], url_path='related_product')
-def get_related_product(self, request, pk=None):
-    try:
-        product = self.get_object()
-        related_products = Product.objects.filter(
-            Q(category=product.category) | Q(name__icontains=product.name)).exclude(id=product.id)
-        serializer = serializers.CustomerProductListSerializer(related_products, many=True)
-        return Response(serializer.data)
-    except Product.DoesNotExist:
-        return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
 
-
-@extend_schema(request=None)
-@action(detail=True, methods=['get'], url_path='calculate_price/(?P<variant_id>[^/.]+)')
-def calculate_price(self, request, pk=None, variant_id=None):
-    try:
-        product = self.get_object()
-    except ObjectDoesNotExist:
-        return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        product_variant = ProductVariant.objects.get(id=variant_id, product=product)
-        calculated_price = product.price + product_variant.additional_price
-        data = {
-            'calculated_price': calculated_price,
-            'variant_id': product_variant.id,
-            'vat_amount': product.vat,
-            'reward_amount': product.reward_points
-        }
-        return Response(data, status=status.HTTP_200_OK)
-    except ObjectDoesNotExist:
-        return Response({'detail': _("Invalid product variant selection")}, status=status.HTTP_400_BAD_REQUEST)
+    @extend_schema(request=None)
+    @action(detail=True, methods=['get'], url_path='calculate_price/(?P<variant_id>[^/.]+)')
+    def calculate_price(self, request, pk=None, variant_id=None):
+        try:
+            product = self.get_object()
+        except ObjectDoesNotExist:
+            return Response({'detail': _("Invalid product selection")}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            product_variant = ProductVariant.objects.get(id=variant_id, product=product)
+            calculated_price = product.price + product_variant.additional_price
+            data = {
+                'calculated_price': calculated_price,
+                'variant_id': product_variant.id,
+                'vat_amount': product.vat,
+                'reward_amount': product.reward_points
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'detail': _("Invalid product variant selection")}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -102,6 +105,20 @@ class CustomerProductReviewAPI(viewsets.GenericViewSet, mixins.ListModelMixin, m
         elif self.action == 'retrieve':
             return serializers.CustomerProductReviewDetailSerializer
         return self.serializer_class
+
+    @extend_schema(request=None)
+    @action(detail=False, methods=['get'], url_path='rating_counter/(?P<product_id>\d+)', permission_classes=[AllowAny])
+    def get_rating_counter(self, request, product_id):
+        try:
+            queryset = ProductReview.objects.filter(product_id=product_id)
+            rating_counts = queryset.values('rating').annotate(count=Count('rating'))
+            data = {
+                f'rating_{rating["rating"]}': rating['count']
+                for rating in rating_counts
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class TopSellingProduct(viewsets.GenericViewSet, mixins.ListModelMixin):

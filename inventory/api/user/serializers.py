@@ -74,8 +74,8 @@ class CustomerProductReviewDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductReview
         fields = (
-            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images'
-        )
+            'id', 'user_name', 'user_image', 'product', 'product_name', 'product_image', 'rating', 'comment', 'images',
+            'created_at')
 
 
 class CustomerProductListSerializer(serializers.ModelSerializer):
@@ -85,7 +85,7 @@ class CustomerProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id', 'product_name', 'price', 'quantity', 'average_rating', 'category', 'thumbnail_url', 'has_variant',
+            'id', 'product_name', 'price', 'quantity','description', 'average_rating', 'category', 'thumbnail_url', 'has_variant',
             'is_featured'
         )
 
@@ -104,16 +104,18 @@ class NewArrivalProductSerializer(serializers.ModelSerializer):
 
 class TopSellingSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='get_product_name', read_only=True)
-    product_image = serializers.CharField(source='get_product_image_url', read_only=True)
-    product_price = serializers.CharField(source='get_product_price', read_only=True)
+    thumbnail_url = serializers.CharField(source='get_product_image_url', read_only=True)
+    price = serializers.CharField(source='get_product_price', read_only=True)
     total_review = serializers.CharField(source='get_total_review', read_only=True)
-    avg_rating = serializers.CharField(source='get_avg_rating', read_only=True)
-    category = serializers.CharField(source='get_product_category', read_only=True)
+    average_rating = serializers.CharField(source='get_avg_rating', read_only=True)
+    category = serializers.IntegerField(source='get_product_category', read_only=True)
+    is_featured = serializers.BooleanField(source='get_is_featured', read_only=True)
+    has_variant = serializers.BooleanField(source='get_has_variant', read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ('id', 'product', 'product_name', 'product_image', 'product_price', 'avg_rating', 'total_review',
-                  "category")
+        fields = ('id', 'product_id', 'product_name', 'thumbnail_url', 'price', 'average_rating', 'total_review',
+                  "category", 'is_featured', 'has_variant')
 
 
 class CustomerProductDetailSerializer(serializers.ModelSerializer):

@@ -147,10 +147,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             'image',
             'image_url',
             'bio',
+            'membership_type',
             'reward_points',
             'wallet'
         )
-        read_only_fields = ('id', 'email', 'mobile', 'reward_points', 'wallet')
+        read_only_fields = ('id', 'email', 'mobile', 'reward_points', 'wallet', 'membership_type')
 
 
 class DocumentSerializer(serializers.ModelSerializer):

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 
 from blog.models import Comment, Post, Like
 
@@ -10,7 +9,7 @@ class UserCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('content', 'comment_author', 'post')
+        fields = ('content', 'comment_author', 'post', 'created_at')
         read_only_fields = ('user',)
 
     def create(self, validated_data):

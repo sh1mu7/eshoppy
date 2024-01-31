@@ -54,6 +54,12 @@ class ProductReviewFilter(dj_filters.FilterSet):
         fields = ('product', 'rating')
 
 
+class ProductRatingCounterFilter(dj_filters.FilterSet):
+    class Meta:
+        model = ProductReview
+        fields = ('product',)
+
+
 class TopSelling(dj_filters.FilterSet):
     product_category = dj_filters.CharFilter(field_name='product__category', lookup_expr='exact')
 
