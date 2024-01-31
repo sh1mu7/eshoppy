@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 
-from coreapp.base import BaseModel
+from coreapp.base import BaseModel, compress_image
 from inventory import constants
 from inventory.utils import product_utils
 

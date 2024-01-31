@@ -1,16 +1,20 @@
 from rest_framework import serializers
+
+from inventory.api.admin.serializers import AdminDocumentSerializer
 from ...models import SupportTicket, TicketReply
 
 
 class AdminSupportTicketListSerializer(serializers.ModelSerializer):
-    attachment_url = serializers.CharField(source='attachment.get_url', read_only=True)
+    attachment_url = AdminDocumentSerializer(source='attachment', many=True, read_only=True)
 
     class Meta:
         model = SupportTicket
-        fields = ('id', 'subject', 'description', 'status', 'priority', 'attachment', 'attachment_url')
+        fields = ('id', 'subject', 'description', 'status', 'priority', 'attachment_url')
 
 
 class AdminTicketReplySerializer(serializers.ModelSerializer):
+    attachment_url = AdminDocumentSerializer(source='attachment', many=True, read_only=True)
+
     class Meta:
         model = TicketReply
         fields = '__all__'

@@ -13,6 +13,7 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 class PageSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.CharField(source='get_thumbnail_url', read_only=True)
+    attachment_url = serializers.CharField(source='get_attachment_url', read_only=True)
 
     class Meta:
         model = Page
@@ -70,4 +71,4 @@ class RefundListAdminSerializer(serializers.ModelSerializer):
 class AdminEmailSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailSubscription
-        fields = ('email', 'is_active')
+        fields = ('id', 'email', 'is_active')

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
+
+from ... import constants
 from ...models import Package, SubscriptionHistory
 
 
@@ -18,6 +20,13 @@ class UserSubscriptionCreateSerializer(serializers.Serializer):
         if not Package.objects.filter(id=package, is_active=True).exists():
             raise serializers.ValidationError({'package': [_("Invalid package id")]})
         return attrs
+
+    def create(self, validated_data):
+        package = validated_data['package']
+        subscription = SubscriptionHistory.objects.create(
+            package=package, amount=package.price, membership_type=package.package_type)
+        subscription.save()
+        return subscription
 
 
 class UserSubscriptionListSerializer(serializers.ModelSerializer):

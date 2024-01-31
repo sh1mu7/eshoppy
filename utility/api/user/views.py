@@ -76,8 +76,15 @@ class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
     serializer_class = serializers.UserSearchResultSerializer
 
     def get_queryset(self):
-        queryset = SearchResult.objects.filter(user=self.request.user).order_by('-created_at')
-        return queryset
+        ip, user_agent = get_client_info(self.request)
+        user = self.request.user
+        if user.is_anonymous:
+            queryset = SearchResult.objects.filter(ip_address=ip).order_by('-created_at')
+            print(queryset)
+            return queryset
+        else:
+            queryset = SearchResult.objects.filter(user=self.request.user).order_by('-created_at')
+            return queryset
 
     def perform_create(self, serializer):
         ip, user_agent = get_client_info(self.request)
@@ -86,8 +93,22 @@ class SearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
         serializer.save(user_agent=user_agent, ip_address=ip, user=self.request.user)
 
 
-
 class UserEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
     permission_classes = [AllowAny]
     queryset = EmailSubscription.objects.all()
     serializer_class = serializers.UserEmailSubscriptionSerializer
+
+    @extend_schema(request=serializers.UserEmailSubscriptionSerializer)
+    @action(detail=False, methods=['post'], url_path='unsubscribe')
+    def get_unsubscribe(self, request):
+        email = request.data.get('email')
+        if email:
+            try:
+                subscription = EmailSubscription.objects.get(email=email)
+                subscription.is_active = False
+                subscription.save()
+                return Response("Unsubscribed successfully", status=status.HTTP_200_OK)
+            except EmailSubscription.DoesNotExist:
+                return Response("Subscription not found", status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response("Email not provided", status=status.HTTP_400_BAD_REQUEST)

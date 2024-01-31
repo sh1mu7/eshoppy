@@ -75,7 +75,7 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ('id', 'user', 'product', 'quantity', 'product_variant')
+        fields = ('id', 'user', 'product', 'product_variant')
         read_only_fields = ('user',)
 
     def validate(self, attrs):
@@ -86,7 +86,7 @@ class UserCartCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        cart = Cart.objects.create(**validated_data, user=user)
+        cart = Cart.objects.create(**validated_data, user=user, quantity=1)
         cart.save()
         return cart
 
@@ -106,12 +106,18 @@ class UserCartUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class CartItemQuantitySerializer(serializers.Serializer):
+    cart_item = serializers.IntegerField()
+    quantity = serializers.IntegerField()
+
+
 class CartPriceCalculationSerializer(serializers.Serializer):
-    cart_list = serializers.ListField(allow_empty=False, allow_null=False)
-    coupon_code = serializers.CharField(required=False)
+    coupon_code = serializers.CharField(allow_null=True, required=False)
+    items = serializers.ListField(
+        child=CartItemQuantitySerializer()
+    )
 
     def validate(self, attrs):
-        # Validate coupon code if provided
         coupon_code = attrs.get('coupon_code')
         if coupon_code:
             try:

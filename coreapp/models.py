@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from coreapp import constants, roles
 from coreapp.manager import MyUserManager
-from .base import BaseModel
+from .base import BaseModel, compress_image
 
 
 class Country(BaseModel):
@@ -37,6 +37,9 @@ class Address(BaseModel):
         Address.objects.filter(user=self.user).update(is_default=False)
         self.is_default = True
 
+    def get_country_name(self):
+        return self.country.name
+
     def __str__(self):
         return f"User: {self.user.get_full_name}\nAddress:{self.flat}, {self.road}, {self.address}, {self.country}, {self.zip_code}"
 
@@ -59,7 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.IntegerField(choices=roles.UserRoles.choices, default=roles.UserRoles.CUSTOMER)
     reward_points = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     membership_type = models.SmallIntegerField(choices=constants.MembershipAndPackageType.choices, null=True)
-    device_id = models.CharField(max_length=255, null=True)
+    fcm_token = models.CharField(max_length=255, null=True)
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -130,3 +133,13 @@ class Document(BaseModel):
     @cached_property
     def get_url(self):
         return f"{settings.MEDIA_HOST}{self.document.url}"
+
+    @cached_property
+    def get_filename(self):
+        return f"{self.document.url}"
+
+    # def save(self, *args, **kwargs):
+    #     image = compress_image(self.document)
+    #     if self.document:
+    #         self.document = image
+    #     super(Document, self).save(*args, **kwargs)

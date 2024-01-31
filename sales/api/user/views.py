@@ -38,11 +38,15 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     coupon_code = serializer.validated_data['coupon_code']
                 else:
                     coupon_code = None
+
+                customer_note = serializer.data['customer_note']
                 address_id = serializer.data['address']
                 coupon_code = serializer.data['coupon_code']
                 payment_method = serializer.data['payment_method']
-                cart_items_id = serializer.data['cart_items']
-                cart_items = Cart.objects.filter(user=self.request.user, id__in=cart_items_id)
+                items = serializer.data['items']
+                cart_item_id = [item['cart_item'] for item in items]
+                quantity_list = [item['quantity'] for item in items]
+                cart_item = Cart.objects.filter(user=self.request.user, id__in=cart_item_id)
                 address = Address.objects.get(id=address_id)
                 customer = self.request.user
                 vat_amount = 0
@@ -53,11 +57,11 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 order = Order.objects.create(
                     customer=customer, customer_email=customer.email, customer_phone=customer.mobile,
                     customer_name=customer.get_full_name, customer_latitude=address.latitude,
-                    customer_longitude=address.longitude, shipping_address=address, payment_method=payment_method)
+                    customer_longitude=address.longitude, shipping_address=address, payment_method=payment_method,
+                    customer_note=customer_note)
                 shipping_charge = shipping_charge_calculate(order.customer)
                 subtotal, vat_amount, discount = process_cart_and_coupon(customer, subtotal, vat_amount, order,
-                                                                         cart_items_id, coupon_code)
-
+                                                                         cart_item_id, coupon_code, quantity_list)
                 estimated_delivery_time = adjust_estd_delivery_time(order)
                 order.subtotal = subtotal
                 order.vat = vat_amount
@@ -70,7 +74,7 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 order.order_stage = constants.OrderStage.ORDER_PLACED
                 order.save()
                 order.refresh_from_db()
-                cart_items.delete()
+                cart_item.delete()
                 OrderEvent.objects.create(order=order, event_status=constants.OrderEventStatus.ORDER_PLACED,
                                           note='Order has been placed successfully').save()
                 customer.reward_points += order.reward_points
@@ -93,8 +97,8 @@ class CustomerCheckoutAPI(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     'tracking_id': order.invoice_no,
                     'order_id': order.id
                 }
-
                 return Response(data, status=status.HTTP_200_OK)
+
         except Exception as e:
             transaction.set_rollback(True)
             return Response({'detail': [_(f"{str(e)} can not create order. Try again.")]},

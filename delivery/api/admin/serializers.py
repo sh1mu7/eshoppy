@@ -7,7 +7,7 @@ from delivery.models import DeliveryCharge, DeliveryRider
 class AdminDeliveryChargeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryCharge
-        fields = ('km_distance', 'amount', 'is_active')
+        fields = ('id', 'km_distance', 'amount', 'is_active')
 
 
 class AdminDeliveryRiderList(serializers.ModelSerializer):

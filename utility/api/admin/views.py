@@ -81,6 +81,6 @@ class AdminSearchResultAPI(viewsets.GenericViewSet, mixins.ListModelMixin):
 
 
 class AdminEmailSubscriptionAPI(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     queryset = EmailSubscription.objects.all()
     serializer_class = serializers.AdminEmailSubscriptionSerializer

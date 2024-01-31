@@ -43,6 +43,8 @@ class ProductFilter(dj_filters.FilterSet):
     name = dj_filters.CharFilter(lookup_expr='icontains')
     category_parent = dj_filters.NumberFilter(field_name='category__parent')
 
+    # min_rating = dj_filters.NumberFilter(field_name='product_review__rating', lookup_expr='gte')
+
     class Meta:
         model = Product
         fields = ('name', 'category', 'brand', 'is_active', 'has_promotion', 'has_variant')
@@ -52,6 +54,12 @@ class ProductReviewFilter(dj_filters.FilterSet):
     class Meta:
         model = ProductReview
         fields = ('product', 'rating')
+
+
+class ProductRatingCounterFilter(dj_filters.FilterSet):
+    class Meta:
+        model = ProductReview
+        fields = ('product',)
 
 
 class TopSelling(dj_filters.FilterSet):
@@ -66,7 +74,11 @@ class CustomerProductFilter(dj_filters.FilterSet):
     name = dj_filters.CharFilter(lookup_expr='icontains')
     category_parent = dj_filters.NumberFilter(field_name='category__parent')
     new = dj_filters.BooleanFilter(method='filter_new')
-    price = dj_filters.RangeFilter()
+    price = dj_filters.NumberFilter()
+    min_price = dj_filters.NumberFilter(field_name='price', lookup_expr='gte')
+    max_price = dj_filters.NumberFilter(field_name='price', lookup_expr='lte')
+    average_rating = dj_filters.NumberFilter(field_name='average_rating', lookup_expr='gte')
+
     sort = dj_filters.ChoiceFilter(
         choices=[
             # Done: sorting by name also needed
@@ -80,7 +92,7 @@ class CustomerProductFilter(dj_filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ('name', 'category', 'brand', 'has_promotion')
+        fields = ('name', 'category', 'brand', 'average_rating', 'has_promotion', 'price')
 
     def filter_new(self, queryset, name, value):
         return queryset.order_by('-created_at')
@@ -92,7 +104,7 @@ class CustomerProductFilter(dj_filters.FilterSet):
             return queryset.order_by('-price')
         elif value == 'rating_low':
             return queryset.order_by('average_rating')
-        elif value == 'rating_low':
+        elif value == 'rating_high':
             return queryset.order_by('-average_rating')
         elif value == 'name_asc':
             return queryset.order_by('name')
@@ -100,3 +112,9 @@ class CustomerProductFilter(dj_filters.FilterSet):
             return queryset.order_by('-name')
         else:
             return queryset
+
+
+class RelatedProductFilter(dj_filters.FilterSet):
+    class Meta:
+        model = Product
+        fields = ('price',)

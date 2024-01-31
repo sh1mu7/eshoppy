@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from dateutil.relativedelta import relativedelta
-
 from cart.models import Cart
 from coreapp.constants import MembershipAndPackageType
 from coreapp.models import Address
@@ -23,22 +21,21 @@ class CouponNotFoundError(Exception):
     pass
 
 
-def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id, coupon_code):
+def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id, coupon_code, quantity_list):
     from sales.models import OrderItem, Coupon
     discount = 0
-    for cart_item_id in cart_items_id:
+    for index, cart_item_id in enumerate(cart_items_id):
         try:
             cart_item = Cart.objects.get(user=customer, id=cart_item_id)
             product = cart_item.product
+            quantity = quantity_list[index]
 
             order_item = OrderItem.objects.create(
-                order=order, customer=customer, product=product, quantity=cart_item.quantity,
+                order=order, customer=customer, product=product, quantity=quantity,
                 vat_amount=product.get_vat_amount, product_variant=cart_item.product_variant)
-
             order_item.save()
             subtotal += order_item.subtotal
             vat_amount += order_item.get_vat_amount
-
             if cart_item.product_variant:
                 product_variant = ProductVariant.objects.get(id=cart_item.product_variant.id)
                 product_variant.quantity -= cart_item.quantity
@@ -46,7 +43,6 @@ def process_cart_and_coupon(customer, subtotal, vat_amount, order, cart_items_id
             else:
                 product.quantity -= cart_item.quantity
                 product.save()
-
         except Cart.DoesNotExist:
             raise CartItemNotFoundError('Cart item not found.')
 
@@ -74,7 +70,6 @@ def adjust_estd_delivery_time(order):
 
 def shipping_charge_calculate(user):
     address = Address.objects.get(user_id=user.id, is_default=True)
-    print(address.latitude)
     global_setting = GlobalSettings.objects.first()
     store_latitude = global_setting.latitude
     store_longitude = global_setting.longitude

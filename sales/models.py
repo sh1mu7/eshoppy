@@ -6,6 +6,7 @@ from django.db.models import Sum
 from django.utils.functional import cached_property
 
 from coreapp.base import BaseModel
+from delivery.models import OrderDelivery
 from sales import constants
 from sales.utils import coupon_utils
 from sales.utils.order_utils import generate_order_reference
@@ -87,6 +88,7 @@ class Order(BaseModel):
     def get_customer_name(self):
         return self.customer.get_full_name
 
+
     @cached_property
     def get_customer_email(self):
         return self.customer.email
@@ -101,7 +103,19 @@ class Order(BaseModel):
 
     @cached_property
     def get_order_event_status(self):
-        return self.orderevent_set.last()
+        return self.orderevent_set.all()
+
+    @cached_property
+    def check_order_status(self):
+        return self.get_order_event_status
+
+    @cached_property
+    def get_delivery_status(self):
+        try:
+            order_delivery=OrderDelivery.objects.get(order_id=self.id)
+            return order_delivery.status
+        except OrderDelivery.DoesNotExist:
+            return None
 
 
 class OrderItem(BaseModel):
@@ -163,6 +177,18 @@ class OrderItem(BaseModel):
     def get_product_category(self):
         category = self.product.category.id
         return category
+
+    @cached_property
+    def get_is_featured(self):
+        if self.product.is_featured:
+            return True
+        return False
+
+    @cached_property
+    def get_has_variant(self):
+        if self.product.has_variant:
+            return True
+        return False
 
     def save(self, *args, **kwargs):
         self.price = self.get_product_price

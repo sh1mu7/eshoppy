@@ -14,6 +14,12 @@ from . import serializers
 from ...models import Reason, Coupon
 
 
+class AdminOrderEventAPI(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAdminUser, ]
+    queryset = OrderEvent.objects.all()
+    serializer_class = serializers.AdminOrderEventSerializer
+
+
 class AdminOrderAPI(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAdminUser, ]
     queryset = Order.objects.all()
@@ -48,13 +54,17 @@ class AdminOrderAPI(viewsets.ReadOnlyModelViewSet):
         order_staff = self.request.user
         order = self.get_object()
         if order.order_status == constants.OrderStatus.CANCELED or order.has_cancel_request:
-            return Response({'detail: Order already has been canceled.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Order has already been canceled or a cancel request has been made.'},
+                            status=status.HTTP_400_BAD_REQUEST)
         if order.has_cancel_request:
             order.order_status = constants.OrderStatus.PROCESSING
             order.cancel_status = constants.OrderCancelStatus.REJECT
-        order.order_staff = order_staff
-        order.save()
-        return Response({'detail': 'Order has been canceled.'}, status=status.HTTP_200_OK)
+            order.order_staff = order_staff
+            order.save()
+            return Response({'detail': 'Cancel request for the order has been rejected.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'No cancel request has been made for this order.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(request=serializers.AdminOrderAssignRider)
     @action(detail=True, methods=['post'], url_path='assign_rider')
@@ -79,7 +89,7 @@ class AdminOrderAPI(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(request=serializers.AdminOrderChangePaymentStatus)
     @action(detail=True, methods=['post'], url_path='change_payment_status')
-    def change_payment_status(self, request):
+    def change_payment_status(self, request, pk=None):
         order = self.get_object()
         serializer = serializers.AdminOrderChangePaymentStatus(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -90,7 +100,7 @@ class AdminOrderAPI(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(request=serializers.AdminOrderStatusChangeSerializer)
     @action(detail=True, methods=['post'], url_path='process')
-    def process(self, request):
+    def process(self, request, pk=None):
         order = self.get_object()
         serializer = serializers.AdminOrderStatusChangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

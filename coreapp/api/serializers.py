@@ -10,6 +10,8 @@ UserModel = get_user_model()
 
 
 class AddressSerializer(serializers.ModelSerializer):
+    country_name = serializers.CharField(source='get_country_name', read_only=True)
+
     class Meta:
         model = Address
         fields = "__all__"
@@ -147,10 +149,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             'image',
             'image_url',
             'bio',
+            'membership_type',
             'reward_points',
             'wallet'
         )
-        read_only_fields = ('id', 'email', 'mobile', 'reward_points', 'wallet')
+        read_only_fields = ('id', 'email', 'mobile', 'reward_points', 'wallet', 'membership_type')
 
 
 class DocumentSerializer(serializers.ModelSerializer):

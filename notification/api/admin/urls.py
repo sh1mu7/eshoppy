@@ -1,11 +1,11 @@
-from django.urls import path, include
 from rest_framework import routers
-from .views import AdminSystemAlertAPI, AdminPersonalNotificationAPI
+from django.urls import path
+from . import views
 
 router = routers.DefaultRouter()
-router.register('system-alert', AdminSystemAlertAPI)
-router.register('personal-notification', AdminPersonalNotificationAPI)
+router.register(r'notifications', views.AdminNotificationAPI)
 urlpatterns = [
+    path('fcm/', views.AdminFCMNotificationAPI.as_view()),
 
 ]
 urlpatterns += router.urls

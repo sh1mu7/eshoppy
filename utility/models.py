@@ -75,8 +75,7 @@ class Page(BaseModel):
     slug = models.CharField(max_length=100, unique=True, db_index=True, editable=False)
     thumbnail = models.ForeignKey("coreapp.Document", on_delete=models.CASCADE, related_name="page_thumbnail")
     attachment = models.ForeignKey(
-        "coreapp.Document", on_delete=models.CASCADE,
-        related_name="page_attachment", null=True, blank=True
+        "coreapp.Document", on_delete=models.CASCADE, related_name="page_attachment", null=True, blank=True
     )
     video_url = models.CharField(max_length=100, null=True, blank=True)
     page_type = models.IntegerField(choices=constants.PageType.choices)
@@ -95,7 +94,7 @@ class Page(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slug_utils.generate_unique_slug(self.title, self)
+            self.generate_slug('title')
         super(Page, self).save(**kwargs)
 
 

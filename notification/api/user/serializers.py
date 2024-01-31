@@ -1,18 +1,19 @@
 from rest_framework import serializers
-from ...models import SystemAlert, PersonalNotification
+
+from notification.models import Notification
 
 
-class UserSystemAlertSerializer(serializers.ModelSerializer):
+class UserNotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SystemAlert
-        fields = ('id', 'title', 'message', 'is_read')
+        model = Notification
+        fields = ('id', 'message', 'is_read', 'created_at')
 
 
-class UserPersonalNotificationSerializer(serializers.ModelSerializer):
+class UserNotificationMarkAsReadSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PersonalNotification
-        fields = ('id', 'title', 'message', 'timestamp', 'is_read')
+        model = Notification
+        fields = ('id', 'is_read')
 
 
-class IsReadSerializer(serializers.Serializer):
-    is_read = serializers.BooleanField(default=True)
+# class UserNotificationMarkAllAsReadSerializer(serializers.ModelSerializer):
+#     class Meta:

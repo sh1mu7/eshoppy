@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'chat.apps.ChatConfig',
     'delivery.apps.DeliveryConfig',
     'inventory.apps.InventoryConfig',
-    'notification.apps.NotificationConfig',
+    'notification.apps.NotificationsConfig',
     'sales.apps.SalesConfig',
     'subscription.apps.SubscriptionConfig',
     'utility.apps.UtilityConfig',
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'Config.middleware.CustomMiddleWare',
+    'django.middleware.locale.LocaleMiddleware'
 ]
 
 ROOT_URLCONF = 'Config.urls'
@@ -112,6 +113,7 @@ SPECTACULAR_SETTINGS = {
         'name': 'Cognix Tech',
         'email': 'info@cognix.tech'
     },
+    'OAS_VERSION': '3.1.0',
     # OTHER SETTINGS
 }
 # Password validation
@@ -134,8 +136,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
+LOCALE_PATHS = [
+    BASE_DIR / 'locale'
+]
+LANGUAGE_CODE = 'bn-BD'
 
 TIME_ZONE = 'UTC'
 
