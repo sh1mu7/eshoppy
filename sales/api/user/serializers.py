@@ -10,41 +10,27 @@ from ..admin.serializers import AdminOrderItemSerializer
 from ...models import Reason, Coupon, Order, OrderEvent, OrderReturn
 
 
-class CartItemSerializer(serializers.Serializer):
-    cart_item = serializers.IntegerField()
-    quantity = serializers.IntegerField()
-
-
 class UserCheckOutSerializer(serializers.Serializer):
+    cart_items = serializers.ListField(allow_empty=False, allow_null=False)
     coupon_code = serializers.CharField(allow_null=True, required=False)
     address = serializers.IntegerField()
     payment_method = serializers.IntegerField()
-    items = serializers.ListField(
-        child=CartItemSerializer()
-    )
-    customer_note = serializers.CharField(allow_null=True, required=False)
 
     def validate(self, attrs):
         user = self.context['request'].user
         address_id = attrs.get('address')
+
         try:
-            cart_items = []
-            for item in attrs.get('items', []):
-                cart_item = item.get('cart_item')
-                quantity = item.get('quantity')
-                try:
-                    cart_item = Cart.objects.get(id=cart_item, user=user)
-                    product = cart_item.product
-                    cart_item.quantity = quantity
-                    if not product.has_stock:
-                        raise serializers.ValidationError({'items': [f'{product} is out of stock.']})
-                    if quantity > cart_item.quantity:
-                        raise serializers.ValidationError(
-                            {'items': [f'Insufficient stock for {product}.']})
-                    cart_items.append(cart_item)
-                except Cart.DoesNotExist:
-                    raise serializers.ValidationError({'items': [f'Cart item with ID {cart_item} not found.']})
+            cart_items = Cart.objects.filter(id__in=attrs.get('cart_items', []), user=user)
+            if not cart_items or cart_items.count() != len(attrs.get('cart_items', [])):
+                raise serializers.ValidationError({'cart_items': f"Some cart items not found."})
+
+            for cart_item in cart_items:
+                product = cart_item.product
+                if not product.has_stock:
+                    raise serializers.ValidationError({'cart_items': [f'{product.product_name} is out of stock.']})
             address = Address.objects.get(id=address_id, user=user)
+            print(address.latitude)
             return attrs
         except ObjectDoesNotExist:
             raise serializers.ValidationError({'detail': [_("Invalid address for the current user.")]})
